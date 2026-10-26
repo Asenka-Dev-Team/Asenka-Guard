@@ -21,3 +21,6 @@
 
 ## 0.1.0 — 2026-10-26
 - Initial prototype: manual scan, version audit, CSV, review, quarantine, restore, delete, WP-CLI.
+
+- Corrected asset loading for the top-level WordPress admin menu; both entry points now load the security-themed styling and behavior.
+- Removed duplicate dashboard shield, corrected results form markup, and standardized tab URLs.
