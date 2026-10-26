@@ -37,5 +37,26 @@
       document.body.appendChild(overlay); const btn = form.querySelector('button'); if (btn) {btn.disabled=true;btn.textContent='Scanning…';}
     });
   });
+  const needleInput=root.querySelector('#ayig-name-filter');
+  const pathMode=root.querySelector('#ayig-match-path');
+  const matchCount=root.querySelector('#ayig-matches');
+  function matchingBoxes(){
+    const q=needleInput?.value.trim().toLowerCase();
+    if(!q)return [];
+    return boxes.filter(box=>{
+      const file=box.closest('tr')?.querySelector('.ayig-path')?.textContent||'';
+      const source=pathMode?.checked?file:file.split(/[\\/]/).pop();
+      return source.toLowerCase().includes(q);
+    });
+  }
+  function showMatches(){if(matchCount)matchCount.textContent=needleInput?.value.trim()?`${matchingBoxes().length} matching`:'';}
+  [needleInput,pathMode].forEach(el=>el?.addEventListener('input',showMatches));
+  root.querySelector('#ayig-select-match')?.addEventListener('click',()=>{matchingBoxes().forEach(b=>{b.checked=true;});sync();});
+  root.querySelector('#ayig-unselect-match')?.addEventListener('click',()=>{matchingBoxes().forEach(b=>{b.checked=false;});sync();});
+  root.querySelectorAll('.ayig-copy').forEach(b=>b.addEventListener('click',async()=>{
+    const path=b.dataset.copy||'';
+    try{await navigator.clipboard.writeText(path);b.textContent='Copied!';setTimeout(()=>b.textContent='Copy path',1300);}
+    catch(e){window.prompt('Copy file path:',path);}
+  }));
   sync();
 })();

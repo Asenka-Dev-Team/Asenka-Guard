@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.4 — Scan triage and native updates
+- Fixed GitHub updater hook to use WordPress `update_plugins_github.com` dynamic filter; adds native forced checks, diagnostics, and Update Now navigation.
+- Added filename substring selection and optional full-path matching with select/unselect matching controls.
+- Highlights all executable PHP-family files in uploads; recognizes harmless `index.php` placeholders as low severity.
+- Added file type column and Copy Path controls.
+- Improved suspect-code snippet readability and read-only viewer for text, images, and embedded PHP evidence; avoids displaying binary gibberish.
+- Corrected bulk form markup and updated documentation.
+
+# Changelog
+
 ## 0.1.3 — 2026-10-26
 - Add last-scan status with WordPress-local timestamp, examined-file count, and active findings count.
 - Make never-scanned sites distinguishable from scans with zero findings.

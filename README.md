@@ -1,6 +1,6 @@
 # Asenka YOOtheme Image Guard
 
-[![Version](https://img.shields.io/badge/version-0.1.3-315664)](https://github.com/Asenka-Dev-Team/Asenka-YOOtheme-Image-Guard/releases/latest) [![Latest release](https://img.shields.io/badge/Download-Latest%20Release-1f8c9b?logo=github)](https://github.com/Asenka-Dev-Team/Asenka-YOOtheme-Image-Guard/releases/latest) [![License](https://img.shields.io/badge/license-GPL--2.0%2B-60747e)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.1.4-315664)](https://github.com/Asenka-Dev-Team/Asenka-YOOtheme-Image-Guard/releases/latest) [![Latest release](https://img.shields.io/badge/Download-Latest%20Release-1f8c9b?logo=github)](https://github.com/Asenka-Dev-Team/Asenka-YOOtheme-Image-Guard/releases/latest) [![License](https://img.shields.io/badge/license-GPL--2.0%2B-60747e)](LICENSE)
 
 A narrowly scoped, **manual WordPress security review tool** for investigating possible compromise related to YOOtheme Pro's image handler. Built by [Asenka Interactive](https://asenka.com).
 
@@ -17,18 +17,18 @@ A narrowly scoped, **manual WordPress security review tool** for investigating p
 4. Go to **Tools → YOOtheme Image Guard** and select **Scan Results → Scan now**.
 
 > [!NOTE]
-> New versions are discovered from **public GitHub Releases**. Use the **Updates** tab to check the latest published version. Maintainers should publish a GitHub release tagged `v0.1.3` after committing matching versioned files.
+> New versions are discovered from **public GitHub Releases**. Use the **Updates** tab to check the latest published version. Maintainers should publish a GitHub release tagged `v0.1.4` after committing matching versioned files.
 
 ## Features
 
-- **Manual scanning:** uploads and nested YOOtheme cache, with filename and PHP-code heuristics.
+- **Manual scanning:** uploads and nested YOOtheme cache, with all PHP-family extensions in uploads plus filename and code heuristics.
 - **Last-scan status:** shows the date/time, files examined, active findings, and scan-limit warning; clearly identifies never-scanned sites.
 - **YOOtheme version audit:** warns about known 5.0.0–5.0.52 exposure.
-- **Reviewable findings:** severity colors, last-modified timestamps, flagged-path highlighting, snippets, explanations of signals, and secure read-only file previews.
-- **Selection tools:** select individual files or all visible files, then apply bulk actions (up to 200 per request).
+- **Reviewable findings:** severity colors, last-modified timestamps, flagged-path highlighting, readable snippets, file types, copy-path buttons, signal explanations, and secure read-only text/image previews.
+- **Selection tools:** select individual files, all visible files, or filename/full-path substring matches, then apply bulk actions (up to 200 per request).
 - **Quarantine tab:** view, restore or permanently delete quarantined files, with deletion confirmation.
 - **CSV exports:** save findings for follow-up.
-- **GitHub release updates:** check for updates from the plugin's Updates tab.
+- **GitHub release updates:** WordPress-native updates, manual refresh, status diagnostics, and Update Now link in the Updates tab.
 - **WP-CLI:** `wp ayig scan`, `wp ayig versions`, `wp ayig findings --format=csv`, `wp ayig quarantine <id>`, `wp ayig restore <id>`, `wp ayig delete <id> --yes`.
 
 ## Critical operational limitations
@@ -48,7 +48,7 @@ A narrowly scoped, **manual WordPress security review tool** for investigating p
 >
 > **Back up production first.** Quarantine uses filesystem renames, which may fail across mounts. A deleted quarantined file cannot be restored by this plugin. A rescan after restoring a file will identify it again.
 
-The scanning overlay is an activity indicator **not** a percentage progress bar. Scans currently run as a regular server request and large sites may encounter server/PHP timeouts. The preview shows only the first 128 KiB of an unchanged file and is unavailable after permanent deletion.
+The scanning overlay is an activity indicator **not** a percentage progress bar. Scans currently run as a regular server request and large sites may encounter server/PHP timeouts. Text previews show the first 128 KiB of an unchanged file; image previews are limited to 2 MiB and is unavailable after permanent deletion.
 
 ## Security reference
 
