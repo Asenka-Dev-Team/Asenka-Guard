@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.3 — 2026-10-26
+- Add last-scan status with WordPress-local timestamp, examined-file count, and active findings count.
+- Make never-scanned sites distinguishable from scans with zero findings.
+- Warn when the scan file limit is reached.
+- Carry forward the v0.1.2 admin UI asset-loading, badge, and markup corrections.
+
+
 ## 0.1.2 — 2026-10-26
 - Pre-release polish: remove decorative emoji from documentation and add a custom SVG security badge to the admin page header and sidebar menu.
 - New gunmetal-styled four-tab admin dashboard: Scan Results, Quarantine, YOOtheme Versions, Updates.
