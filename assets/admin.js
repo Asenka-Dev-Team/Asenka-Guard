@@ -4,14 +4,21 @@
   if (!root) return;
   const boxes = [...root.querySelectorAll('.ayig-select')];
   const masters = [...root.querySelectorAll('.ayig-select-all')];
-  const counter = root.querySelector('.ayig-count');
+  const counters = [...root.querySelectorAll('.ayig-count')];
   function sync() {
     const selected = boxes.filter(x => x.checked).length;
-    if (counter) counter.textContent = `${selected} selected`;
+    counters.forEach(c => {c.textContent = `${selected} selected`;});
     masters.forEach(m => { m.checked = boxes.length > 0 && selected === boxes.length; m.indeterminate = selected > 0 && selected < boxes.length; });
   }
   masters.forEach(m => m.addEventListener('change', () => { boxes.forEach(b => b.checked = m.checked); sync(); }));
   boxes.forEach(b => b.addEventListener('change', sync));
+  const topOperation = root.querySelector('#ayig-bulk-form select[name=operation]');
+  const bottomOperation = root.querySelector('.ayig-bottom-operation');
+  if (topOperation && bottomOperation) {
+    bottomOperation.value = topOperation.value;
+    topOperation.addEventListener('change', () => { bottomOperation.value = topOperation.value; });
+    bottomOperation.addEventListener('change', () => { topOperation.value = bottomOperation.value; });
+  }
   const highlight = root.querySelector('#ayig-highlight');
   if (highlight) {
     const set = () => root.classList.toggle('ayig-no-highlight', !highlight.checked);

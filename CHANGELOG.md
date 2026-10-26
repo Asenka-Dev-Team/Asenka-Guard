@@ -7,6 +7,7 @@
 - Added file type column and Copy Path controls.
 - Improved suspect-code snippet readability and read-only viewer for text, images, and embedded PHP evidence; avoids displaying binary gibberish.
 - Corrected bulk form markup and updated documentation.
+- Final pre-release: evidence-weighted severity classification, bottom bulk action bar, and notification-safe faux heading.
 
 # Changelog
 

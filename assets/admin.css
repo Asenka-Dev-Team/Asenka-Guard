@@ -14,3 +14,11 @@
 
 /* v0.1.4 selection and priority */
 .ayig-select-by-name{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:10px 12px;background:#e9eff2;border:1px solid #cad5da;border-radius:6px;margin:10px 0}.ayig-select-by-name input[type=text]{min-width:220px}.ayig-select-by-name label{display:flex;align-items:center;gap:6px}.ayig-copy{margin:0 3px 5px 0!important}.ayig-severity-low{background:#e2ecf2;color:#4c6675}.ayig-path-priority{background:#ffe0bd;color:#703500;border-color:#d8a064}.ayig-table .ayig-snippet pre{min-height:24px}
+
+/* v0.1.4 final polish: heading outside WP notice insertion targets */
+.ayig-hero .ayig-heading{display:flex;align-items:center;gap:11px;color:#fff;font-size:27px;font-weight:700;line-height:1.35;margin:4px 0 10px;flex-wrap:wrap}
+.ayig-hero .ayig-heading small{font-size:13px;color:#bdd2dd;font-weight:500}
+.ayig-header-badge{flex:0 0 42px;vertical-align:middle}
+.ayig-wrap>.notice{margin:16px 0 0;background:#fff;color:#1d2327}
+.ayig-bulk-bar-bottom{border-top:1px solid #cad5da;border-bottom:1px solid #cad5da;padding:12px 10px;background:#eef3f5;margin:8px 0 14px}
+.ayig-severity-critical{background:#8d2525;color:#fff}

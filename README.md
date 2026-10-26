@@ -64,3 +64,6 @@ Change the main plugin header version, `AYIG_VERSION`, README badge, and changel
 ## License
 
 GPL-2.0-or-later.
+
+### Severity classification (v0.1.4)
+Severity is heuristic and is **not proof of compromise**. PHP files in uploads and PHP tags inside images trigger review; stronger combinations (request-driven execution, obfuscation, and known suspicious `tmp_*.php` patterns) raise priority. Common harmless `index.php` directory placeholders remain low priority. Review evidence before quarantining.
