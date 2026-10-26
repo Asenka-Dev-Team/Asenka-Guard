@@ -1,39 +1,65 @@
-# Asenka YOOtheme Image Guard
+# 🛡️ Asenka YOOtheme Image Guard
 
-A purpose-built WordPress scanner and manual quarantine tool for investigating YOOtheme Pro image-handler exposure. Maintained by Asenka Interactive.
+[![Version](https://img.shields.io/badge/version-0.1.2-315664)](https://github.com/Asenka-Dev-Team/Asenka-YOOtheme-Image-Guard/releases/latest) [![Latest release](https://img.shields.io/badge/Download-Latest%20Release-1f8c9b?logo=github)](https://github.com/Asenka-Dev-Team/Asenka-YOOtheme-Image-Guard/releases/latest) [![License](https://img.shields.io/badge/license-GPL--2.0%2B-60747e)](LICENSE)
 
-## Security advisory
-YOOtheme's published changelog identifies **CVE-2026-102785** as an unauthenticated remote code execution vulnerability in its image handler, patched in **YOOtheme Pro 5.0.53 (October 21, 2026)**. Versions 5.0.0–5.0.52 require immediate updates. The WordPress YOOtheme image cache resides at `wp-content/uploads/yootheme/cache` as of 5.0.0.
+A narrowly scoped, **manual WordPress security review tool** for investigating possible compromise related to YOOtheme Pro's image handler. Built by [Asenka Interactive](https://asenka.com).
 
-Sources:
-- https://yootheme.com/changelog
-- https://nvd.nist.gov/vuln/detail/CVE-2026-102785
+> [!IMPORTANT]
+> **First update affected YOOtheme Pro installations.** The known affected range is **5.0.0–5.0.52**, patched in **5.0.53**. Scanning does not close the vulnerability, and updating does not remove existing malware.
 
-## Installation and releases
-1. Create **public** repository `Asenka-Dev-Team/Asenka-YOOtheme-Image-Guard`.
-2. Put the plugin files **directly at repository root**, not within an additional wrapper folder.
-3. In WordPress upload `asenka-yootheme-image-guard-v0.1.1.zip`, then activate.
-4. Publish a **GitHub Release** with stable tag `v0.1.1`. The GitHub-generated **Source code (zip)** is sufficient. No manual ZIP asset is needed.
-5. For each new release update `Version` in the plugin header, `AYIG_VERSION`, and this changelog, then tag/release `vX.Y.Z`.
+## 🚀 Download and install
 
-WordPress checks GitHub through its `Update URI` mechanism. The updater checks the releases/latest endpoint (cached one hour), integrates with Plugins > Updates, and normalizes GitHub's source-code wrapper folder during updates. A check/status interface appears at Tools > Image Guard Updates.
+**[⬇ Download the latest GitHub Release](https://github.com/Asenka-Dev-Team/Asenka-YOOtheme-Image-Guard/releases/latest)**
 
-## Features
-- Manual uploads-directory inspection including `uploads/yootheme/cache`.
-- YOOtheme theme/plugin version identification, with vulnerable 5.0.0–5.0.52 warnings.
-- Heuristic signals for PHP in writable uploads, image/PHP polyglots, PHP execution/obfuscation patterns and previously observed `tmp_123456.php` files.
-- Review, CSV export, quarantine, restore, permanent deletion of **already quarantined** files.
-- WP-CLI: `wp ayig scan`, `wp ayig versions`, `wp ayig findings --format=csv`, `wp ayig quarantine <id>`, `wp ayig restore <id>`, `wp ayig delete <id> --yes`.
-- Existing quarantined/deleted finding records persist through rescans.
+1. Open the **Latest Release** link above.
+2. Download the installable plugin ZIP listed in the release assets, **if available**. Otherwise download **Source code (zip)**; the GitHub updater can normalize the GitHub-generated source folder for automatic updates, but manual installation of GitHub source archives may need repackaging so the ZIP contains an `asenka-yootheme-image-guard/` root folder.
+3. In WordPress go to **Plugins → Add New Plugin → Upload Plugin**, select the ZIP and activate it.
+4. Go to **Tools → YOOtheme Image Guard** and select **Scan Results → Scan now**.
 
-## Critical operational limitations
-- Manual scans only; not a guarantee of a clean site. The scanner does **not** comprehensively inspect theme/plugin/header modifications, database injection, user accounts, scheduled tasks or other backdoors.
-- PHP in uploads is suspicious but not by itself proof of compromise. Review before changing production files.
-- Before enabling quarantine, ensure a writable directory **physically outside all served webroots**, with appropriate server permissions. The default is `dirname(ABSPATH)/asenka-yootheme-image-guard-quarantine` and the plugin blocks paths physically inside ABSPATH. On nested installations, confirm that the parent is not separately web-served. To set the location, add this to a small must-use plugin:
-  `add_filter('ayig_quarantine_path', function () { return '/secure/private/asenka-image-guard'; });`
-- Back up and snapshot the site before quarantining. Quarantine uses filesystem rename, so it may require the source and destination to reside on compatible mounted volumes.
-- Findings are heuristic and need human review. Do not run bulk deletion without investigating scope and persistence.
-- GitHub repository/release must exist before updater will show a latest version. This package does **not** publish GitHub automatically.
+> [!NOTE]
+> New versions are discovered from **public GitHub Releases**. Use the **Updates** tab to check the latest published version. Maintainers should publish a GitHub release tagged `v0.1.2` after committing matching versioned files.
+
+## ✨ Features
+
+- 🧪 **Manual scanning:** uploads and nested YOOtheme cache, with filename and PHP-code heuristics.
+- 🧩 **YOOtheme version audit:** warns about known 5.0.0–5.0.52 exposure.
+- 🧾 **Reviewable findings:** severity colors, last-modified timestamps, flagged-path highlighting, snippets, explanations of signals, and secure read-only file previews.
+- ☑️ **Selection tools:** select individual files or all visible files, then apply bulk actions (up to 200 per request).
+- 🔒 **Quarantine tab:** view, restore or permanently delete quarantined files, with deletion confirmation.
+- 📊 **CSV exports:** save findings for follow-up.
+- ⬆️ **GitHub release updates:** check for updates from the plugin's Updates tab.
+- 💻 **WP-CLI:** `wp ayig scan`, `wp ayig versions`, `wp ayig findings --format=csv`, `wp ayig quarantine <id>`, `wp ayig restore <id>`, `wp ayig delete <id> --yes`.
+
+## 🚨 Critical operational limitations
+
+> [!CAUTION]
+> **Not a full malware scanner.** Only the uploads directory is scanned. Theme modifications, injected header templates, database entries, cron tasks, rogue users, persistence mechanisms and files outside uploads are not comprehensively analyzed.
+>
+> **Heuristics are not proof.** PHP inside uploads and `tmp_123.php` patterns can be highly concerning, but *do not automatically delete findings*. Snippets and previews expose untrusted code as inert, escaped text only.
+>
+> **Quarantine storage must be private.** The default path (`dirname(ABSPATH)/asenka-yootheme-image-guard-quarantine`) is outside the WordPress installation directory but **might still be within a web-served parent directory**. Verify its protection on your GridPane server, or set a custom private location outside every served webroot:
+>
+> ```php
+> add_filter('ayig_quarantine_path', function () {
+>     return '/secure/private/asenka-image-guard';
+> });
+> ```
+>
+> **Back up production first.** Quarantine uses filesystem renames, which may fail across mounts. A deleted quarantined file cannot be restored by this plugin. A rescan after restoring a file will identify it again.
+
+The scanning overlay is an activity indicator **not** a percentage progress bar. Scans currently run as a regular server request and large sites may encounter server/PHP timeouts. The preview shows only the first 128 KiB of an unchanged file and is unavailable after permanent deletion.
+
+## 🧠 Security reference
+
+- [YOOtheme changelog](https://yootheme.com/changelog)
+- [CVE-2026-102785 at NVD](https://nvd.nist.gov/vuln/detail/CVE-2026-102785)
+
+The underlying issue relates to abuse of YOOtheme Pro's image handler and may be associated with server-side code being written to accessible file paths. The scanner looks for suspicious PHP placement, injected PHP markers in image files, request-to-execution patterns and obfuscation. These are **indicators**, not attribution or forensic proof of the entry point.
+
+## 🔧 Release process (maintainers)
+
+Change the main plugin header version, `AYIG_VERSION`, README badge, and changelog. Push files to the public repository root, tag `vX.Y.Z`, then publish a non-prerelease GitHub Release. The updater uses GitHub's `releases/latest` API and source-code ZIP with folder normalization; no manual binary asset is required for automatic updates.
 
 ## License
+
 GPL-2.0-or-later.
