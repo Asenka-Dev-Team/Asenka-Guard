@@ -1,4 +1,4 @@
-# 🛡️ Asenka YOOtheme Image Guard
+# Asenka YOOtheme Image Guard
 
 [![Version](https://img.shields.io/badge/version-0.1.2-315664)](https://github.com/Asenka-Dev-Team/Asenka-YOOtheme-Image-Guard/releases/latest) [![Latest release](https://img.shields.io/badge/Download-Latest%20Release-1f8c9b?logo=github)](https://github.com/Asenka-Dev-Team/Asenka-YOOtheme-Image-Guard/releases/latest) [![License](https://img.shields.io/badge/license-GPL--2.0%2B-60747e)](LICENSE)
 
@@ -7,9 +7,9 @@ A narrowly scoped, **manual WordPress security review tool** for investigating p
 > [!IMPORTANT]
 > **First update affected YOOtheme Pro installations.** The known affected range is **5.0.0–5.0.52**, patched in **5.0.53**. Scanning does not close the vulnerability, and updating does not remove existing malware.
 
-## 🚀 Download and install
+## Download and install
 
-**[⬇ Download the latest GitHub Release](https://github.com/Asenka-Dev-Team/Asenka-YOOtheme-Image-Guard/releases/latest)**
+**[Download the latest GitHub Release](https://github.com/Asenka-Dev-Team/Asenka-YOOtheme-Image-Guard/releases/latest)**
 
 1. Open the **Latest Release** link above.
 2. Download the installable plugin ZIP listed in the release assets, **if available**. Otherwise download **Source code (zip)**; the GitHub updater can normalize the GitHub-generated source folder for automatic updates, but manual installation of GitHub source archives may need repackaging so the ZIP contains an `asenka-yootheme-image-guard/` root folder.
@@ -19,18 +19,18 @@ A narrowly scoped, **manual WordPress security review tool** for investigating p
 > [!NOTE]
 > New versions are discovered from **public GitHub Releases**. Use the **Updates** tab to check the latest published version. Maintainers should publish a GitHub release tagged `v0.1.2` after committing matching versioned files.
 
-## ✨ Features
+## Features
 
-- 🧪 **Manual scanning:** uploads and nested YOOtheme cache, with filename and PHP-code heuristics.
-- 🧩 **YOOtheme version audit:** warns about known 5.0.0–5.0.52 exposure.
-- 🧾 **Reviewable findings:** severity colors, last-modified timestamps, flagged-path highlighting, snippets, explanations of signals, and secure read-only file previews.
-- ☑️ **Selection tools:** select individual files or all visible files, then apply bulk actions (up to 200 per request).
-- 🔒 **Quarantine tab:** view, restore or permanently delete quarantined files, with deletion confirmation.
-- 📊 **CSV exports:** save findings for follow-up.
-- ⬆️ **GitHub release updates:** check for updates from the plugin's Updates tab.
-- 💻 **WP-CLI:** `wp ayig scan`, `wp ayig versions`, `wp ayig findings --format=csv`, `wp ayig quarantine <id>`, `wp ayig restore <id>`, `wp ayig delete <id> --yes`.
+- **Manual scanning:** uploads and nested YOOtheme cache, with filename and PHP-code heuristics.
+- **YOOtheme version audit:** warns about known 5.0.0–5.0.52 exposure.
+- **Reviewable findings:** severity colors, last-modified timestamps, flagged-path highlighting, snippets, explanations of signals, and secure read-only file previews.
+- **Selection tools:** select individual files or all visible files, then apply bulk actions (up to 200 per request).
+- **Quarantine tab:** view, restore or permanently delete quarantined files, with deletion confirmation.
+- **CSV exports:** save findings for follow-up.
+- **GitHub release updates:** check for updates from the plugin's Updates tab.
+- **WP-CLI:** `wp ayig scan`, `wp ayig versions`, `wp ayig findings --format=csv`, `wp ayig quarantine <id>`, `wp ayig restore <id>`, `wp ayig delete <id> --yes`.
 
-## 🚨 Critical operational limitations
+## Critical operational limitations
 
 > [!CAUTION]
 > **Not a full malware scanner.** Only the uploads directory is scanned. Theme modifications, injected header templates, database entries, cron tasks, rogue users, persistence mechanisms and files outside uploads are not comprehensively analyzed.
@@ -49,14 +49,14 @@ A narrowly scoped, **manual WordPress security review tool** for investigating p
 
 The scanning overlay is an activity indicator **not** a percentage progress bar. Scans currently run as a regular server request and large sites may encounter server/PHP timeouts. The preview shows only the first 128 KiB of an unchanged file and is unavailable after permanent deletion.
 
-## 🧠 Security reference
+## Security reference
 
 - [YOOtheme changelog](https://yootheme.com/changelog)
 - [CVE-2026-102785 at NVD](https://nvd.nist.gov/vuln/detail/CVE-2026-102785)
 
 The underlying issue relates to abuse of YOOtheme Pro's image handler and may be associated with server-side code being written to accessible file paths. The scanner looks for suspicious PHP placement, injected PHP markers in image files, request-to-execution patterns and obfuscation. These are **indicators**, not attribution or forensic proof of the entry point.
 
-## 🔧 Release process (maintainers)
+## Release process (maintainers)
 
 Change the main plugin header version, `AYIG_VERSION`, README badge, and changelog. Push files to the public repository root, tag `vX.Y.Z`, then publish a non-prerelease GitHub Release. The updater uses GitHub's `releases/latest` API and source-code ZIP with folder normalization; no manual binary asset is required for automatic updates.
 

@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.1.2 — 2026-10-26
+- Pre-release polish: remove decorative emoji from documentation and add a custom SVG security badge to the admin page header and sidebar menu.
 - New gunmetal-styled four-tab admin dashboard: Scan Results, Quarantine, YOOtheme Versions, Updates.
 - Read-only escaped source viewer in a separate tab with content security controls; snippet disclosure.
 - Select-all and multi-select bulk quarantine, restore, and permanent deletion.
