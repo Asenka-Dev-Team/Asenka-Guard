@@ -22,3 +22,5 @@
 .ayig-wrap>.notice{margin:16px 0 0;background:#fff;color:#1d2327}
 .ayig-bulk-bar-bottom{border-top:1px solid #cad5da;border-bottom:1px solid #cad5da;padding:12px 10px;background:#eef3f5;margin:8px 0 14px}
 .ayig-severity-critical{background:#8d2525;color:#fff}
+
+.ayig-security-panel{background:#eaf2f5;border:1px solid #7eabb7;border-left:4px solid #27778b;border-radius:7px;padding:14px 20px;margin:18px 0;color:#183340}.ayig-security-panel code{overflow-wrap:anywhere}.ayig-confidence{display:inline-block;text-transform:capitalize;background:#e1edf0;color:#214758;padding:3px 7px;border-radius:5px;white-space:nowrap}

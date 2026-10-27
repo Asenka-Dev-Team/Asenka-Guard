@@ -67,3 +67,15 @@ GPL-2.0-or-later.
 
 ### Severity classification (v0.1.4)
 Severity is heuristic and is **not proof of compromise**. PHP files in uploads and PHP tags inside images trigger review; stronger combinations (request-driven execution, obfuscation, and known suspicious `tmp_*.php` patterns) raise priority. Common harmless `index.php` directory placeholders remain low priority. Review evidence before quarantining.
+
+
+## v0.1.5: Security hardening and diagnostics
+
+- Quarantine location checks validate the real parent directory, reject link-based storage paths, enforce owner-only directory permissions, and verify quarantined file hashes and permissions before reporting success.
+- Restores reject existing destination paths and verify the hash again after moving. Any failed verification requires administrator inspection; do **not** automatically retry or delete evidence.
+- Findings now include confidence (heuristic, suspicious, strong indicators, informational) independently of severity, along with permissions and additional manifest metadata. Existing quarantined files and their saved records are retained.
+- The Quarantine and YOOtheme Versions tabs display filesystem isolation checks and a manual PHP-execution configuration reminder. **The plugin cannot prove that a server alias does not expose the quarantine folder or that uploads PHP is disabled.** No executable test file is generated.
+- Before deployment: back up the site, confirm the private quarantine path, test restore with harmless fixtures, and check server PHP execution rules manually.
+
+> [!CAUTION]
+> A passing local quarantine diagnostic does not prove isolation from all server HTTP aliases. PHP execution protection requires server-specific verification. Do not use bulk delete without reviewing findings.

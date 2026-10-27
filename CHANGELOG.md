@@ -1,3 +1,10 @@
+## 0.1.5 — Security Hardening
+- Verify quarantine storage boundaries, directory/file permissions and post-move hashes.
+- Harden restore target checks, collision handling and evidence manifests.
+- Add independent confidence categorization and file permission metadata.
+- Show local quarantine diagnostics and manual uploads-PHP execution verification guidance.
+- Preserve stored quarantine history and existing administrator workflows.
+
 # Changelog
 
 ## 0.1.4 — Scan triage and native updates

@@ -3,7 +3,7 @@
  * Plugin Name: Asenka YOOtheme Image Guard
  * Plugin URI: https://github.com/Asenka-Dev-Team/Asenka-YOOtheme-Image-Guard
  * Description: Audits YOOtheme Pro image-handler exposure and reviews suspicious files, with quarantine and WP-CLI tools.
- * Version: 0.1.4
+ * Version: 0.1.5
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Asenka Interactive
@@ -11,7 +11,7 @@
  * License: GPL-2.0-or-later
  */
 if (!defined('ABSPATH')) exit;
-define('AYIG_VERSION','0.1.4');
+define('AYIG_VERSION','0.1.5');
 define('AYIG_FILE',__FILE__);
 define('AYIG_BASENAME',plugin_basename(__FILE__));
 require_once __DIR__.'/includes/class-image-guard.php';
