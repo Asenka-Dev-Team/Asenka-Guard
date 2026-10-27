@@ -56,3 +56,9 @@
 
 - Corrected asset loading for the top-level WordPress admin menu; both entry points now load the security-themed styling and behavior.
 - Removed duplicate dashboard shield, corrected results form markup, and standardized tab URLs.
+
+### v0.1.5 pre-release final refinements
+- Numbered result rows; responsive row-number layout.
+- Hash-aware Ignore File action with an Ignored Files management tab.
+- Separate Scan Uploads and Scan Site views and action labels; shared quarantine.
+- WP-CLI scan scope and ignore/unignore commands.

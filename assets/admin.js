@@ -40,7 +40,7 @@
     if (form.querySelector('input[name=operation]')?.value !== 'scan') return;
     form.addEventListener('submit', () => {
       const overlay = document.createElement('div'); overlay.className = 'ayig-scanning';
-      overlay.setAttribute('role', 'status'); overlay.innerHTML = '<span class="ayig-spinner" aria-hidden="true"></span><strong>Scanning uploads…</strong><span>Please keep this tab open. Results will appear when the scan finishes.</span>';
+      overlay.setAttribute('role', 'status'); overlay.innerHTML = `<span class="ayig-spinner" aria-hidden="true"></span><strong>Scanning ${form.querySelector('input[name=tab]')?.value === 'site' ? 'site' : 'uploads'}…</strong><span>Please keep this tab open. Results will appear when the scan finishes.</span>`;
       document.body.appendChild(overlay); const btn = form.querySelector('button'); if (btn) {btn.disabled=true;btn.textContent='Scanning…';}
     });
   });

@@ -85,3 +85,15 @@ Severity is heuristic and is **not proof of compromise**. PHP files in uploads a
 The public name is **Asenka Guard**. Its focus is still the YOOtheme Pro 5 image-handler vulnerability and suspicious files in uploads. The GitHub repository is expected at [`Asenka-Dev-Team/Asenka-Guard`](https://github.com/Asenka-Dev-Team/Asenka-Guard). Rename the existing GitHub repository before distributing this build.
 
 **Compatibility:** The installed directory remains `asenka-yootheme-image-guard` intentionally. **Do not delete the existing plugin directory or quarantine files** simply to change its display name: doing so can interrupt activation and file restoration. Existing saved scan history and WP-CLI command (`wp ayig`) are retained.
+
+
+## Scan scopes and ignore rules (v0.1.5)
+
+- **Scan Uploads:** checks suspicious files within `wp-content/uploads` as before.
+- **Scan Site:** read-only filesystem examination of the WordPress installation, excluding symlinks and common dependency/cache folders. Outside uploads, it reports stronger executable-code or image-polyglot indicators rather than every PHP file. This is heuristic and can produce false positives; scans may time out on large sites.
+- **Ignored Files:** an administrator can hide an active finding. Ignore rules persist across scans while the file SHA-256 remains unchanged. When the content changes, the file may reappear. Undo an ignore from the Ignored Files tab and scan again.
+- **Quarantine:** shared storage and management for all scan scopes. File actions retain hash verification and safety checks.
+- **WP-CLI:** `wp ayig scan --scope=site` or `wp ayig scan --scope=uploads`; `wp ayig ignore <finding-id>` / `wp ayig unignore <finding-id>`.
+
+> [!CAUTION]
+> Scan Site is an additional heuristic scan, not a WordPress core integrity check or guarantee of compromise detection. Verify findings against trusted originals. Perform server-level backups before quarantine or deletion.
