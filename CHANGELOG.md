@@ -1,3 +1,10 @@
+## 0.1.5 — Pre-release branding and responsive results
+- Renamed the displayed plugin to **Asenka Guard**; focus remains YOOtheme Pro image-handler exposure and suspicious uploads.
+- Updated the GitHub Releases updater to `Asenka-Dev-Team/Asenka-Guard`.
+- Scan result rows display as labeled cards at narrower widths while retaining table display on desktop.
+- Preserved the existing plugin directory, PHP class names, WP-CLI alias (`wp ayig`), saved options, and quarantine paths for backwards compatibility.
+- Rename the GitHub repository before installing this package or expecting automatic update checks.
+
 ## 0.1.5 — Security Hardening
 - Verify quarantine storage boundaries, directory/file permissions and post-move hashes.
 - Harden restore target checks, collision handling and evidence manifests.
@@ -36,7 +43,7 @@
 
 
 ## 0.1.1 — 2026-10-26
-- Rebrand to Asenka YOOtheme Image Guard to isolate CVE-related scanning from future Asenka security tools.
+- Rebrand to Asenka Guard to isolate CVE-related scanning from future Asenka security tools.
 - Standard Asenka public GitHub Releases updater (no manually uploaded ZIP asset needed).
 - Proper plugin directory structure and Tools > Image Guard Updates status page.
 - Preserve quarantined/deleted finding entries between rescans.

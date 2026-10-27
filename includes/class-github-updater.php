@@ -1,7 +1,7 @@
 <?php
 if (!defined('ABSPATH')) exit;
 final class Asenka_YOOtheme_Image_Guard_Updater {
- const OWNER='Asenka-Dev-Team'; const REPO='Asenka-YOOtheme-Image-Guard'; const CACHE='ayig_latest_release';
+ const OWNER='Asenka-Dev-Team'; const REPO='Asenka-Guard'; const CACHE='ayig_latest_release';
  static function init(){
   add_filter('update_plugins_github.com',[__CLASS__,'check'],10,4);
   add_filter('plugins_api',[__CLASS__,'info'],20,3);
@@ -13,7 +13,7 @@ final class Asenka_YOOtheme_Image_Guard_Updater {
  static function api($force=false){
   if(!$force){$cached=get_transient(self::CACHE);if(is_array($cached))return $cached;}
   $url='https://api.github.com/repos/'.self::OWNER.'/'.self::REPO.'/releases/latest';
-  $response=wp_remote_get($url,['timeout'=>12,'headers'=>['Accept'=>'application/vnd.github+json','User-Agent'=>'Asenka-YOOtheme-Image-Guard/'.AYIG_VERSION]]);
+  $response=wp_remote_get($url,['timeout'=>12,'headers'=>['Accept'=>'application/vnd.github+json','User-Agent'=>'Asenka-Guard/'.AYIG_VERSION]]);
   if(is_wp_error($response))return $response;
   if(wp_remote_retrieve_response_code($response)!==200)return new WP_Error('ayig_github','GitHub API returned HTTP '.wp_remote_retrieve_response_code($response));
   $data=json_decode(wp_remote_retrieve_body($response),true);
@@ -33,7 +33,7 @@ final class Asenka_YOOtheme_Image_Guard_Updater {
  static function info($result,$action,$args){
   if($action!=='plugin_information'||empty($args->slug)||$args->slug!=='asenka-yootheme-image-guard')return $result;
   $r=self::api();if(is_wp_error($r))return $result;
-  return (object)['name'=>'Asenka YOOtheme Image Guard','slug'=>'asenka-yootheme-image-guard','version'=>$r['version'],'author'=>'Asenka Interactive','homepage'=>'https://github.com/'.self::OWNER.'/'.self::REPO,'download_link'=>$r['zip'],'sections'=>['description'=>'YOOtheme Pro image handler exposure and suspicious upload review.','changelog'=>esc_html($r['notes'])]];
+  return (object)['name'=>'Asenka Guard','slug'=>'asenka-yootheme-image-guard','version'=>$r['version'],'author'=>'Asenka Interactive','homepage'=>'https://github.com/'.self::OWNER.'/'.self::REPO,'download_link'=>$r['zip'],'sections'=>['description'=>'YOOtheme Pro image handler exposure and suspicious upload review.','changelog'=>esc_html($r['notes'])]];
  }
  static function normalize($source,$remote_source,$upgrader,$hook_extra){
   if(empty($hook_extra['plugin'])||$hook_extra['plugin']!==AYIG_BASENAME)return $source;
@@ -44,8 +44,8 @@ final class Asenka_YOOtheme_Image_Guard_Updater {
   if(!$wp_filesystem||!$wp_filesystem->move($source,$target))return new WP_Error('ayig_rename_failed','Could not normalize plugin ZIP root directory');
   return $target;
  }
- static function menu(){add_management_page('YOOtheme Image Guard Updates','Image Guard Updates','update_plugins','ayig-updates',[__CLASS__,'page']);}
- static function links($links){array_unshift($links,'<a href="'.esc_url(admin_url('tools.php?page=asenka-yootheme-image-guard')).'">Dashboard</a>','<a href="https://github.com/Asenka-Dev-Team/Asenka-YOOtheme-Image-Guard" target="_blank" rel="noopener noreferrer">GitHub</a>','<a href="https://asenka.com" target="_blank" rel="noopener noreferrer">Asenka</a>');return $links;}
+ static function menu(){add_management_page('Asenka Guard Updates','Image Guard Updates','update_plugins','ayig-updates',[__CLASS__,'page']);}
+ static function links($links){array_unshift($links,'<a href="'.esc_url(admin_url('tools.php?page=asenka-yootheme-image-guard')).'">Dashboard</a>','<a href="https://github.com/Asenka-Dev-Team/Asenka-Guard" target="_blank" rel="noopener noreferrer">GitHub</a>','<a href="https://asenka.com" target="_blank" rel="noopener noreferrer">Asenka</a>');return $links;}
  static function refresh(){if(!current_user_can('update_plugins'))wp_die('Forbidden',403);check_admin_referer('ayig_refresh');delete_transient(self::CACHE);delete_site_transient('update_plugins');wp_update_plugins();wp_safe_redirect(Asenka_YOOtheme_Image_Guard::admin_url('updates'));exit;}
  static function page(){echo '<div class="wrap">';self::panel();echo '</div>'; }
  static function panel(){if(!current_user_can('update_plugins'))return;$r=self::api();echo '<div class="ayig-updates"><h2>GitHub Releases</h2><p>Installed version: <strong>'.esc_html(AYIG_VERSION).'</strong></p><p>Repository: <a href="'.esc_url('https://github.com/'.self::OWNER.'/'.self::REPO).'" target="_blank" rel="noopener">'.esc_html(self::OWNER.'/'.self::REPO).'</a></p>';

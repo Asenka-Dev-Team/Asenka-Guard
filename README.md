@@ -1,6 +1,6 @@
-# Asenka YOOtheme Image Guard
+# Asenka Guard
 
-[![Version](https://img.shields.io/badge/version-0.1.4-315664)](https://github.com/Asenka-Dev-Team/Asenka-YOOtheme-Image-Guard/releases/latest) [![Latest release](https://img.shields.io/badge/Download-Latest%20Release-1f8c9b?logo=github)](https://github.com/Asenka-Dev-Team/Asenka-YOOtheme-Image-Guard/releases/latest) [![License](https://img.shields.io/badge/license-GPL--2.0%2B-60747e)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.1.4-315664)](https://github.com/Asenka-Dev-Team/Asenka-Guard/releases/latest) [![Latest release](https://img.shields.io/badge/Download-Latest%20Release-1f8c9b?logo=github)](https://github.com/Asenka-Dev-Team/Asenka-Guard/releases/latest) [![License](https://img.shields.io/badge/license-GPL--2.0%2B-60747e)](LICENSE)
 
 A narrowly scoped, **manual WordPress security review tool** for investigating possible compromise related to YOOtheme Pro's image handler. Built by [Asenka Interactive](https://asenka.com).
 
@@ -9,12 +9,12 @@ A narrowly scoped, **manual WordPress security review tool** for investigating p
 
 ## Download and install
 
-**[Download the latest GitHub Release](https://github.com/Asenka-Dev-Team/Asenka-YOOtheme-Image-Guard/releases/latest)**
+**[Download the latest GitHub Release](https://github.com/Asenka-Dev-Team/Asenka-Guard/releases/latest)**
 
 1. Open the **Latest Release** link above.
 2. Download the installable plugin ZIP listed in the release assets, **if available**. Otherwise download **Source code (zip)**; the GitHub updater can normalize the GitHub-generated source folder for automatic updates, but manual installation of GitHub source archives may need repackaging so the ZIP contains an `asenka-yootheme-image-guard/` root folder.
 3. In WordPress go to **Plugins → Add New Plugin → Upload Plugin**, select the ZIP and activate it.
-4. Go to **Tools → YOOtheme Image Guard** and select **Scan Results → Scan now**.
+4. Go to **Tools → Asenka Guard** and select **Scan Results → Scan now**.
 
 > [!NOTE]
 > New versions are discovered from **public GitHub Releases**. Use the **Updates** tab to check the latest published version. Maintainers should publish a GitHub release tagged `v0.1.4` after committing matching versioned files.
@@ -79,3 +79,9 @@ Severity is heuristic and is **not proof of compromise**. PHP files in uploads a
 
 > [!CAUTION]
 > A passing local quarantine diagnostic does not prove isolation from all server HTTP aliases. PHP execution protection requires server-specific verification. Do not use bulk delete without reviewing findings.
+
+## Name and repository migration (v0.1.5)
+
+The public name is **Asenka Guard**. Its focus is still the YOOtheme Pro 5 image-handler vulnerability and suspicious files in uploads. The GitHub repository is expected at [`Asenka-Dev-Team/Asenka-Guard`](https://github.com/Asenka-Dev-Team/Asenka-Guard). Rename the existing GitHub repository before distributing this build.
+
+**Compatibility:** The installed directory remains `asenka-yootheme-image-guard` intentionally. **Do not delete the existing plugin directory or quarantine files** simply to change its display name: doing so can interrupt activation and file restoration. Existing saved scan history and WP-CLI command (`wp ayig`) are retained.
