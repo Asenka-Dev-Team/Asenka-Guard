@@ -9,6 +9,7 @@ final class Asenka_YOOtheme_Image_Guard_Updater {
   add_action('admin_menu',[__CLASS__,'menu']);
   add_action('admin_post_ayig_refresh',[__CLASS__,'refresh']);
   add_filter('plugin_action_links_'.AYIG_BASENAME,[__CLASS__,'links']);
+  add_action('admin_post_ayig_auto_update',[__CLASS__,'toggle_auto_update']);
  }
  static function api($force=false){
   if(!$force){$cached=get_transient(self::CACHE);if(is_array($cached))return $cached;}
@@ -45,7 +46,23 @@ final class Asenka_YOOtheme_Image_Guard_Updater {
   return $target;
  }
  static function menu(){add_management_page('Asenka Guard Updates','Image Guard Updates','update_plugins','ayig-updates',[__CLASS__,'page']);}
- static function links($links){array_unshift($links,'<a href="'.esc_url(admin_url('tools.php?page=asenka-yootheme-image-guard')).'">Dashboard</a>','<a href="https://github.com/Asenka-Dev-Team/Asenka-Guard" target="_blank" rel="noopener noreferrer">GitHub</a>','<a href="https://asenka.com" target="_blank" rel="noopener noreferrer">Asenka</a>');return $links;}
+ static function links($links){
+  array_unshift($links,'<a href="'.esc_url(admin_url('admin.php?page=asenka-yootheme-image-guard')).'">Dashboard</a>','<a href="https://github.com/Asenka-Dev-Team/Asenka-Guard" target="_blank" rel="noopener noreferrer">GitHub</a>');
+  if(current_user_can('update_plugins')){
+   $enabled=in_array(AYIG_BASENAME,(array)get_site_option('auto_update_plugins',[]),true);
+   $url=wp_nonce_url(add_query_arg(['action'=>'ayig_auto_update','enable'=>$enabled?'0':'1'],admin_url('admin-post.php')),'ayig_auto_update');
+   $links['ayig_auto_update']='<a href="'.esc_url($url).'">'.($enabled?'Disable auto-updates':'Enable auto-updates').'</a>';
+  }
+  return $links;
+ }
+ static function toggle_auto_update(){
+  if(!current_user_can('update_plugins'))wp_die('Forbidden',403);
+  check_admin_referer('ayig_auto_update');$enable=isset($_GET['enable'])&&$_GET['enable']==='1';
+  $list=(array)get_site_option('auto_update_plugins',[]);
+  $list=array_values(array_diff($list,[AYIG_BASENAME]));if($enable)$list[]=AYIG_BASENAME;
+  update_site_option('auto_update_plugins',$list);
+  wp_safe_redirect(admin_url('plugins.php'));exit;
+ }
  static function refresh(){if(!current_user_can('update_plugins'))wp_die('Forbidden',403);check_admin_referer('ayig_refresh');delete_transient(self::CACHE);delete_site_transient('update_plugins');wp_update_plugins();wp_safe_redirect(Asenka_YOOtheme_Image_Guard::admin_url('updates'));exit;}
  static function page(){echo '<div class="wrap">';self::panel();echo '</div>'; }
  static function panel(){if(!current_user_can('update_plugins'))return;$r=self::api();echo '<div class="ayig-updates"><h2>GitHub Releases</h2><p>Installed version: <strong>'.esc_html(AYIG_VERSION).'</strong></p><p>Repository: <a href="'.esc_url('https://github.com/'.self::OWNER.'/'.self::REPO).'" target="_blank" rel="noopener">'.esc_html(self::OWNER.'/'.self::REPO).'</a></p>';

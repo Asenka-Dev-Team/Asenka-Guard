@@ -11,7 +11,20 @@
     masters.forEach(m => { m.checked = boxes.length > 0 && selected === boxes.length; m.indeterminate = selected > 0 && selected < boxes.length; });
   }
   masters.forEach(m => m.addEventListener('change', () => { boxes.forEach(b => {if(!b.closest('tr')?.hidden)b.checked = m.checked;}); sync(); }));
-  boxes.forEach(b => b.addEventListener('change', sync));
+  // Standard Shift+click range selection; range follows visible row order.
+  let lastClicked = null;
+  boxes.forEach(b => {
+    b.addEventListener('click', event => {
+      const visible = boxes.filter(box => !box.closest('tr')?.hidden);
+      if (event.shiftKey && lastClicked && visible.includes(lastClicked) && visible.includes(b)) {
+        const start = visible.indexOf(lastClicked), end = visible.indexOf(b);
+        for (let i = Math.min(start, end); i <= Math.max(start, end); i++) visible[i].checked = b.checked;
+      }
+      lastClicked = b;
+      sync();
+    });
+    b.addEventListener('change', sync);
+  });
   const topOperation = root.querySelector('#ayig-bulk-form select[name=operation]');
   const bottomOperation = root.querySelector('.ayig-bottom-operation');
   if (topOperation && bottomOperation) {

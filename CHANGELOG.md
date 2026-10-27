@@ -1,3 +1,11 @@
+## 0.1.7 — pre-release
+
+- Dashboard metrics for scans and quarantine.
+- Opt-in WP-Cron monitoring and notification settings.
+- Local YOOtheme change-baseline inventory and comparison.
+- Shift+click range selection on scan results.
+- Linked author credit to Asenka Interactive.
+
 ## v0.1.6.1 — Pre-release fixes
 - Tightened scan table column widths and improved action visibility.
 - Lock document scrolling during the scanning overlay.

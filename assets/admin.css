@@ -156,3 +156,6 @@ html.ayig-scan-locked,body.ayig-scan-locked{overflow:hidden!important;overscroll
 .ayig-change-meta{font-size:11px;color:#536873}
 .ayig-change-list li a{white-space:nowrap}
 .ayig-change-footer{border-top:1px solid #d6e0e6;padding:12px 18px;text-align:right}
+
+/* 0.1.7 monitoring dashboard */
+.ayig-metrics{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:12px;margin:18px 0}.ayig-metrics>div,.ayig-monitor{background:#fff;border:1px solid #cbd5df;border-radius:8px;padding:16px}.ayig-metrics strong{display:block;font-size:26px;color:#193849}.ayig-metrics span{color:#435a68}.ayig-monitor{margin:16px 0;max-width:1050px}.ayig-monitor input[type=email]{min-width:250px}.ayig-integrity-list{max-height:360px;overflow:auto}.ayig-integrity-list code{overflow-wrap:anywhere}@media(max-width:720px){.ayig-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}

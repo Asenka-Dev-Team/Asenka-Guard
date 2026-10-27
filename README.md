@@ -114,3 +114,12 @@ The public name is **Asenka Guard**. Its focus is still the YOOtheme Pro 5 image
 - Image header mismatch is evidence for investigation, not proof of maliciousness. AVIF, ICO and BMP support is limited.
 - Site-scan findings are **review-only**, including theme/plugin files. Quarantine should be limited to thoroughly reviewed uploads findings.
 - New/changed labels compare against the preceding saved scan, not an immutable trusted baseline.
+
+
+## v0.1.7: integrity and monitoring
+
+- Dashboard summarizes active findings, urgent findings, quarantined files, and last scans.
+- Integrity tab captures a **local YOOtheme file hash baseline** (PHP, JS, and templates). This baseline is **not vendor-authenticated** and does not establish that the site is clean. Capture only after manual verification; compare after upgrades and investigate unexpected modifications.
+- Opt-in WP-Cron scans: daily or weekly, one scan scope (uploads or site), optional email alerts for new/changed findings and truncated scans. WordPress cron depends on requests or system cron; server-level scheduling is recommended for reliability. Scans are synchronous and can time out.
+- Scan results support Shift+click range selection for visible rows.
+- WordPress native auto-updates are not forced; availability depends on the GitHub updater correctly reporting releases to WordPress.
