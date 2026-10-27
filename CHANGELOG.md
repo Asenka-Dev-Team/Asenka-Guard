@@ -1,3 +1,9 @@
+## Unreleased — direct evidence download
+
+- Add administrator-only, nonce-protected individual original-byte download to Scan Uploads, Scan Site and Quarantine. Downloads use inert .bin attachment names and an 8 MiB limit.
+- Add website, software versions and scope to evidence ZIP manifest; include site and scope in evidence ZIP filename.
+- Retain the v0.1.7 version pending release approval.
+
 ## 0.1.7 — pre-release
 
 - Dashboard metrics for scans and quarantine.

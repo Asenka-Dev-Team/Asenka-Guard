@@ -2,7 +2,7 @@
 if (!defined('ABSPATH')) exit;
 final class Asenka_YOOtheme_Image_Guard {
  const VERSION=AYIG_VERSION; const HISTORY="ayig_scan_history"; const OPTION='ayig_findings'; const LOG='ayig_audit'; const IGNORED='ayig_ignored_files'; const MONITOR='ayig_monitor_settings'; const BASELINE='ayig_yootheme_baseline'; const ALERT_HASH='ayig_last_alert_fingerprint';
- static function init(){add_action('admin_menu',[__CLASS__,'menu']);add_action('admin_post_ayig',[__CLASS__,'action']);add_action('admin_post_ayig_view',[__CLASS__,'view']);add_action('admin_enqueue_scripts',[__CLASS__,'assets']);add_filter('admin_footer_text',[__CLASS__,'footer']);add_filter('update_footer',[__CLASS__,'footer_version'],20); add_action('ayig_monitor_scan',[__CLASS__,'scheduled_scan']);add_action('admin_init',[__CLASS__,'ensure_schedule']); if(defined('WP_CLI') && WP_CLI) self::cli();}
+ static function init(){add_action('admin_menu',[__CLASS__,'menu']);add_action('admin_post_ayig',[__CLASS__,'action']);add_action('admin_post_ayig_view',[__CLASS__,'view']);add_action('admin_post_ayig_download',[__CLASS__,'download']);add_action('admin_enqueue_scripts',[__CLASS__,'assets']);add_filter('admin_footer_text',[__CLASS__,'footer']);add_filter('update_footer',[__CLASS__,'footer_version'],20); add_action('ayig_monitor_scan',[__CLASS__,'scheduled_scan']);add_action('admin_init',[__CLASS__,'ensure_schedule']); if(defined('WP_CLI') && WP_CLI) self::cli();}
  static function menu(){
   add_management_page('Asenka Guard','Asenka Guard','manage_options','asenka-yootheme-image-guard',[__CLASS__,'page']);
   // Give Image Guard its own recognizable security icon in the main WP admin sidebar.
@@ -363,13 +363,61 @@ final class Asenka_YOOtheme_Image_Guard {
  }
  static function allowed($path){foreach(self::roots('site') as $root)if(self::within($path,$root))return true;return false;}
 
+ /** Stream unchanged finding bytes as an inert .bin attachment; never through a public uploads URL. */
+ static function download(){
+  if(!current_user_can('manage_options'))wp_die('Forbidden',403);
+  $id=sanitize_text_field(wp_unslash($_GET['id']??''));
+  if(!preg_match('/^[a-f0-9]{64}$/D',$id))wp_die('Invalid finding ID',400);
+  check_admin_referer('ayig_download_'.$id);
+  $items=(array)get_option(self::OPTION,[]);
+  if(!isset($items[$id]))wp_die('Finding unavailable',404);
+  $f=$items[$id];$state=$f['state']??'';
+  if(!in_array($state,['active','quarantined'],true))wp_die('File unavailable for download',409);
+  if($state==='active'){
+   $file=$f['path'];
+   if(!self::safe_existing($file,$f['sha256']))wp_die('File changed or path is unsafe',409);
+  }else{
+   // Quarantined files must be read only from verified private storage.
+   $file=self::store().'/'.$id.'.quarantine';
+   if(!is_file($file)||is_link($file))wp_die('Quarantined file unavailable',409);
+  }
+  $size=@filesize($file);
+  if(!is_int($size)||$size<0||$size>8388608)wp_die('File exceeds the 8 MiB direct-download limit; use approved server-side analysis.',413);
+  $sha=@hash_file('sha256',$file);
+  if(!is_string($sha)||!hash_equals((string)$f['sha256'],$sha))wp_die('SHA-256 mismatch; download blocked',409);
+  $fh=@fopen($file,'rb');if(!$fh)wp_die('Could not open file',500);
+  $stat=@fstat($fh);
+  if(!is_array($stat)||($stat['size']??-1)!==$size){fclose($fh);wp_die('File changed during preparation',409);}
+  // An inert filename minimizes accidental execution on the receiving computer.
+  $original=sanitize_file_name(basename($f['path']));
+  $original=preg_replace('/[^a-zA-Z0-9._-]/','-',(string)$original);
+  $original=substr($original?:'file',0,80);
+  $name='asenka-guard-'.substr($id,0,12).'-'.$original.'.bin';
+  while(ob_get_level()>0){@ob_end_clean();}
+  nocache_headers();header('Content-Type: application/octet-stream');header('Content-Disposition: attachment; filename="'.$name.'"');header('X-Content-Type-Options: nosniff');header('Content-Security-Policy: sandbox');header('Content-Length: '.$size);header('Cache-Control: no-store, private');
+  $remaining=$size;
+  while($remaining>0&&!feof($fh)){
+   $chunk=fread($fh,min(65536,$remaining));if($chunk===false||$chunk==='')break;
+   echo $chunk;$remaining-=strlen($chunk);
+  }
+  fclose($fh);exit;
+ }
+ /** Site and software identity included in exported evidence manifests. */
+ static function export_identity(){
+  $host=(string)wp_parse_url(home_url(),PHP_URL_HOST);
+  $host=preg_replace('/[^a-z0-9.-]/i','-',strtolower($host));
+  if(!$host)$host='wordpress-site';
+  $theme=wp_get_theme();$yoo=[];
+  foreach(self::versions() as $component)$yoo[]=$component['name'].' '.$component['version'];
+  return ['site_url'=>home_url('/'),'site_domain'=>$host,'wordpress_version'=>get_bloginfo('version'),'active_theme'=>$theme->get('Name'),'active_theme_version'=>$theme->get('Version'),'yootheme_versions'=>$yoo,'asenka_guard_version'=>self::VERSION];
+ }
  static function evidence_export($ids){
   if(!class_exists('ZipArchive'))throw new RuntimeException('ZIP extension unavailable; cannot export evidence.');
   $items=(array)get_option(self::OPTION,[]);$ids=array_slice(array_unique($ids),0,50);
   if(!$ids)throw new RuntimeException('Select 1–50 findings for evidence export.');
   $zip=new ZipArchive();$temp=wp_tempnam('asenka-guard-evidence');if(!$temp)throw new RuntimeException('Unable to allocate export file');
   if($zip->open($temp,ZipArchive::OVERWRITE)!==true){@unlink($temp);throw new RuntimeException('Unable to initialize evidence ZIP');}
-  $manifest=['generated_utc'=>gmdate('c'),'warning'=>'Untrusted files. Do not execute or restore on production without review.','files'=>[]];$total=0;
+  $manifest=['generated_utc'=>gmdate('c'),'site'=>self::export_identity(),'scan_scope'=>'unknown','warning'=>'Untrusted files. Do not execute or restore on production without review.','files'=>[]];$total=0;$scopes=[];
   foreach($ids as $id){
    if(!preg_match('/^[a-f0-9]{64}$/D',$id)||!isset($items[$id]))continue;$f=$items[$id];$state=$f['state']??'';
    if($state!=='active' && $state!=='quarantined')continue;
@@ -379,11 +427,13 @@ final class Asenka_YOOtheme_Image_Guard {
    $sha=@hash_file('sha256',$file);if(!is_string($sha)||!hash_equals((string)$f['sha256'],$sha))continue;
    $data=@file_get_contents($file);if(!is_string($data))continue;
    $zip->addFromString('samples/'.$id.'.evidence',$data);$total+=strlen($data);
-   $manifest['files'][]=['id'=>$id,'path'=>$f['path'],'sha256'=>$sha,'size'=>$size,'state'=>$state,'signals'=>$f['signals'],'scope'=>self::scan_scope($f)];
+   $scope=self::scan_scope($f);$scopes[$scope]=true;
+   $manifest['files'][]=['id'=>$id,'path'=>$f['path'],'sha256'=>$sha,'size'=>$size,'state'=>$state,'signals'=>$f['signals'],'scope'=>$scope];
   }
+  $scope_label=count($scopes)===1?(string)key($scopes):'mixed';$manifest['scan_scope']=$scope_label;
   $zip->addFromString('manifest.json',wp_json_encode($manifest,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));$zip->close();
   if(!$manifest['files']){@unlink($temp);throw new RuntimeException('No eligible unchanged files under export limits.');}
-  nocache_headers();header('Content-Type: application/zip');header('X-Content-Type-Options: nosniff');header('Content-Disposition: attachment; filename="asenka-guard-evidence-'.gmdate('Ymd-His').'.zip"');header('Content-Length: '.filesize($temp));readfile($temp);@unlink($temp);exit;
+  nocache_headers();header('Content-Type: application/zip');header('X-Content-Type-Options: nosniff');header('Content-Disposition: attachment; filename="asenka-guard-'.$manifest['site']['site_domain'].'-'.$scope_label.'-'.gmdate('Ymd-His').'-evidence.zip"');header('Content-Length: '.filesize($temp));readfile($temp);@unlink($temp);exit;
  }
  static function csv($scope='uploads',$metadata=true){
   if(!in_array($scope,['uploads','site'],true))$scope='uploads';
@@ -485,7 +535,7 @@ final class Asenka_YOOtheme_Image_Guard {
  static function form($operation,$id='',$label='',$tab='results',$class=''){echo '<form method="post" action="'.esc_url(admin_url('admin-post.php')).'" class="ayig-inline-form">';wp_nonce_field('ayig');echo '<input type="hidden" name="action" value="ayig"><input type="hidden" name="operation" value="'.esc_attr($operation).'"><input type="hidden" name="tab" value="'.esc_attr($tab).'"><input type="hidden" name="id" value="'.esc_attr($id).'"><button class="button ayig-action '.esc_attr($class).'" type="submit" '.($operation==='delete'?'data-confirm="Permanently delete this quarantined file? This cannot be undone."':'').'>'.esc_html($label?:ucfirst($operation)).'</button></form>';}
  static function signal_label($sig){$map=['executable_in_writable_area'=>'PHP in uploads','observed_tmp_php_pattern'=>'tmp PHP','request_shell_execution'=>'request + shell','request_code_execution'=>'request + eval','image_type_mismatch'=>'type mismatch','compressed_uninspected'=>'compressed / unverified','compressed_payload'=>'decompressed','decompression_loader'=>'decoder','goto_exec_obfuscation'=>'goto + eval','standard_index_placeholder'=>'index placeholder'];return $map[$sig]??str_replace('_',' ',$sig);}
  static function signals_ui($f){$definitions=self::definitions();foreach((array)$f['signals'] as $sig){$d=$definitions[$sig]??[$sig,'A scanner heuristic; review the source file.'];$search='https://www.google.com/search?q='.rawurlencode('WordPress security '.$sig);echo '<details class="ayig-signal"><summary>'.esc_html(self::signal_label($sig)).'</summary><div class="ayig-pop"><strong>'.esc_html($d[0]).'</strong><p>'.esc_html($d[1]).'</p><a href="'.esc_url($search).'" target="_blank" rel="noopener noreferrer">Learn more ↗</a></div></details> ';}}
- static function rows($items,$tab){$total=0;foreach($items as $f){if(($tab==='results'||$tab==='site')&&self::scan_scope($f)!==($tab==='site'?'site':'uploads'))continue;if($tab==='quarantine' && $f['state']!=='quarantined')continue;if(($tab==='results'||$tab==='site') && $f['state']!=='active')continue;$total++;$priority=self::priority($f);$id=$f['id'];echo '<tr><td data-label="#" class="ayig-row-number">'.esc_html((string)$total).'</td><td data-label="Select" class="ayig-check-cell"><label><input type="checkbox" class="ayig-select" form="ayig-bulk-form" name="ids[]" value="'.esc_attr($id).'" aria-label="Select '.esc_attr(basename($f['path'])).'"></label></td><td data-label="File path / evidence"><code class="ayig-path '.($priority?'ayig-path-priority':'').'">'.esc_html($f['path']).'</code>';if($priority)echo ' <span class="ayig-alert">Unusual PHP in uploads — review</span>';if(($tab==='results'||$tab==='site') && $f['state']==='active'){ $snippet=self::snippet($f);if($snippet!=='')echo '<details class="ayig-snippet"><summary>Suspect code sample</summary><pre>'.esc_html($snippet).'</pre></details>';}echo '</td><td data-label="Type"><code>'.esc_html(strtoupper(pathinfo($f['path'],PATHINFO_EXTENSION)?:'none')).'</code></td><td data-label="Severity"><span class="ayig-severity ayig-severity-'.esc_attr($f['severity']).'">'.esc_html(strtoupper($f['severity'])).'</span></td><td data-label="Confidence"><span class="ayig-confidence">'.esc_html(ucwords(str_replace('_',' ', $f['confidence']??self::confidence($f['signals'])))).'</span></td><td data-label="Signals">';self::signals_ui($f);echo '</td><td data-label="Last modified">'.esc_html(gmdate('Y-m-d H:i',intval($f['mtime']))).' UTC</td><td data-label="Status">'.esc_html(ucfirst($f['state'])).'</td><td data-label="Actions" class="ayig-actions">';if($f['state']!=='deleted'){ $view=wp_nonce_url(add_query_arg(['action'=>'ayig_view','id'=>$id],admin_url('admin-post.php')),'ayig_view_'.$id);echo '<a class="button ayig-action ayig-view" target="_blank" rel="noopener noreferrer" href="'.esc_url($view).'">◉ View</a>';}if($f['state']==='active'){if(self::scan_scope($f)==='uploads')self::form('quarantine',$id,'Quarantine',$tab,'ayig-warning');self::form('ignore',$id,'Ignore',$tab,'ayig-ignore');}if($f['state']==='quarantined'){self::form('restore',$id,'↶ Restore',$tab,'ayig-success');self::form('delete',$id,'✕ Delete',$tab,'ayig-danger');}echo '</td></tr>';}if(!$total)echo '<tr class="ayig-empty-row"><td colspan="10">No findings in this view.</td></tr>';}
+ static function rows($items,$tab){$total=0;foreach($items as $f){if(($tab==='results'||$tab==='site')&&self::scan_scope($f)!==($tab==='site'?'site':'uploads'))continue;if($tab==='quarantine' && $f['state']!=='quarantined')continue;if(($tab==='results'||$tab==='site') && $f['state']!=='active')continue;$total++;$priority=self::priority($f);$id=$f['id'];echo '<tr><td data-label="#" class="ayig-row-number">'.esc_html((string)$total).'</td><td data-label="Select" class="ayig-check-cell"><label><input type="checkbox" class="ayig-select" form="ayig-bulk-form" name="ids[]" value="'.esc_attr($id).'" aria-label="Select '.esc_attr(basename($f['path'])).'"></label></td><td data-label="File path / evidence"><code class="ayig-path '.($priority?'ayig-path-priority':'').'">'.esc_html($f['path']).'</code>';if($priority)echo ' <span class="ayig-alert">Unusual PHP in uploads — review</span>';if(($tab==='results'||$tab==='site') && $f['state']==='active'){ $snippet=self::snippet($f);if($snippet!=='')echo '<details class="ayig-snippet"><summary>Suspect code sample</summary><pre>'.esc_html($snippet).'</pre></details>';}echo '</td><td data-label="Type"><code>'.esc_html(strtoupper(pathinfo($f['path'],PATHINFO_EXTENSION)?:'none')).'</code></td><td data-label="Severity"><span class="ayig-severity ayig-severity-'.esc_attr($f['severity']).'">'.esc_html(strtoupper($f['severity'])).'</span></td><td data-label="Confidence"><span class="ayig-confidence">'.esc_html(ucwords(str_replace('_',' ', $f['confidence']??self::confidence($f['signals'])))).'</span></td><td data-label="Signals">';self::signals_ui($f);echo '</td><td data-label="Last modified">'.esc_html(gmdate('Y-m-d H:i',intval($f['mtime']))).' UTC</td><td data-label="Status">'.esc_html(ucfirst($f['state'])).'</td><td data-label="Actions" class="ayig-actions">';if($f['state']!=='deleted'){ $view=wp_nonce_url(add_query_arg(['action'=>'ayig_view','id'=>$id],admin_url('admin-post.php')),'ayig_view_'.$id);echo '<a class="button ayig-action ayig-view" target="_blank" rel="noopener noreferrer" href="'.esc_url($view).'">◉ View</a>';$download=wp_nonce_url(add_query_arg(['action'=>'ayig_download','id'=>$id],admin_url('admin-post.php')),'ayig_download_'.$id);echo '<a class="button ayig-action ayig-download" href="'.esc_url($download).'" title="Download original bytes as a non-executable .bin file (8 MiB maximum)">↓ Download</a>';}if($f['state']==='active'){if(self::scan_scope($f)==='uploads')self::form('quarantine',$id,'Quarantine',$tab,'ayig-warning');self::form('ignore',$id,'Ignore',$tab,'ayig-ignore');}if($f['state']==='quarantined'){self::form('restore',$id,'↶ Restore',$tab,'ayig-success');self::form('delete',$id,'✕ Delete',$tab,'ayig-danger');}echo '</td></tr>';}if(!$total)echo '<tr class="ayig-empty-row"><td colspan="10">No findings in this view.</td></tr>';}
  /** Informational diagnostic: never attempts to execute a test PHP file. */
  static function security_panel(){
   $d=self::quarantine_diagnostics(false);
