@@ -127,3 +127,10 @@ The public name is **Asenka Guard**. Its focus is still the YOOtheme Pro 5 image
 - Image header mismatch is evidence for investigation, not proof of maliciousness. AVIF, ICO and BMP support is limited.
 - Site-scan findings are **review-only**, including theme/plugin files. Quarantine should be limited to thoroughly reviewed uploads findings.
 - New/changed labels compare against the preceding saved scan, not an immutable trusted baseline.
+
+### Unreleased scan/CSV refinements (0.1.7 test build)
+
+- Scan Site verifies matching WordPress core files using WordPress.org MD5 checksums when available, and attempts exact-version checksum verification for WordPress.org plugins. Verified matches are omitted from heuristic findings. Missing/unreachable checksum data **never** implies safety. Commercial plugins and BlogVault connectors are not automatically trusted.
+- Empty and recognized harmless `index.php` placeholders are omitted by default.
+- **Export report CSV** includes site URL/domain, scan scope, timestamp, WordPress version, active theme/version, detected YOOtheme versions, and Asenka Guard version. **Findings-only CSV** preserves a single header row for imports. Exports are scoped to the current Scan Uploads / Scan Site tab.
+- Verification depends on availability of WordPress.org services and supported exact plugin checksum releases. Do not rely on this plugin as proof that all code is clean.
