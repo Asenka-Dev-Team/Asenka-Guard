@@ -1,8 +1,12 @@
-## Unreleased — direct evidence download
+## 0.1.8 — 2026-10-27 — Verification, exports and downloads
 
-- Add administrator-only, nonce-protected individual original-byte download to Scan Uploads, Scan Site and Quarantine. Downloads use inert .bin attachment names and an 8 MiB limit.
-- Add website, software versions and scope to evidence ZIP manifest; include site and scope in evidence ZIP filename.
-- Retain the v0.1.7 version pending release approval.
+- Fix WordPress native Automatic Updates column integration by supplying GitHub release metadata even when already up to date; remove redundant custom auto-update row action.
+- Reduce Scan Site false positives by excluding checksum-verified WordPress core and WordPress.org plugin files where official matching checksums are available; do not automatically trust commercial plugins or BlogVault connectors.
+- Omit empty and recognized harmless directory-browsing `index.php` placeholders from default findings.
+- Add report-style CSV exports with site/domain, scan scope, timestamp, WordPress, active theme, YOOtheme and Asenka Guard versions, alongside findings-only CSV for spreadsheet imports.
+- Add nonce-protected, permission-checked direct downloads of active/quarantined evidence as inert `.bin` attachments with SHA-256 verification and an 8 MiB limit.
+- Name evidence ZIPs by site, scan scope and export timestamp, with expanded software metadata in `manifest.json`.
+- Keep scanning heuristic; unverified files are not safe by default. No automatic deletion.
 
 ## 0.1.7 — pre-release
 

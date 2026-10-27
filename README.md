@@ -1,6 +1,6 @@
 # Asenka Guard
 
-[![Version](https://img.shields.io/badge/version-0.1.7-315664)](https://github.com/Asenka-Dev-Team/Asenka-Guard/releases/latest) [![Latest release](https://img.shields.io/badge/Download-Latest%20Release-1f8c9b?logo=github)](https://github.com/Asenka-Dev-Team/Asenka-Guard/releases/latest) [![License](https://img.shields.io/badge/license-GPL--2.0%2B-60747e)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.1.8-315664)](https://github.com/Asenka-Dev-Team/Asenka-Guard/releases/latest) [![Latest release](https://img.shields.io/badge/Download-Latest%20Release-1f8c9b?logo=github)](https://github.com/Asenka-Dev-Team/Asenka-Guard/releases/latest) [![License](https://img.shields.io/badge/license-GPL--2.0%2B-60747e)](LICENSE)
 
 A WordPress security review and monitoring plugin focused on suspicious files, YOOtheme Pro image-handler exposure, and local file integrity changes. Built by [Asenka Interactive](https://asenka.com).
 
@@ -17,7 +17,7 @@ A WordPress security review and monitoring plugin focused on suspicious files, Y
 4. Open **Asenka Guard → Scan Uploads** to run a manual uploads scan, or use **Scan Site** for broader read-only inspection. Review the Dashboard before enabling monitoring.
 
 > [!NOTE]
-> New versions are discovered from **public GitHub Releases**. Use the **Updates** tab to check the latest published version. Maintainers should publish a GitHub release tagged `v0.1.7` after committing matching versioned files.
+> New versions are discovered from **public GitHub Releases**. Use the **Updates** tab to check the latest published version. Maintainers should publish a GitHub release tagged `v0.1.8` after committing matching versioned files.
 
 ## Features
 
@@ -128,9 +128,12 @@ The public name is **Asenka Guard**. Its focus is still the YOOtheme Pro 5 image
 - Site-scan findings are **review-only**, including theme/plugin files. Quarantine should be limited to thoroughly reviewed uploads findings.
 - New/changed labels compare against the preceding saved scan, not an immutable trusted baseline.
 
-### Unreleased scan/CSV refinements (0.1.7 test build)
+## v0.1.8 — Verification and evidence workflow
 
 - Scan Site verifies matching WordPress core files using WordPress.org MD5 checksums when available, and attempts exact-version checksum verification for WordPress.org plugins. Verified matches are omitted from heuristic findings. Missing/unreachable checksum data **never** implies safety. Commercial plugins and BlogVault connectors are not automatically trusted.
 - Empty and recognized harmless `index.php` placeholders are omitted by default.
 - **Export report CSV** includes site URL/domain, scan scope, timestamp, WordPress version, active theme/version, detected YOOtheme versions, and Asenka Guard version. **Findings-only CSV** preserves a single header row for imports. Exports are scoped to the current Scan Uploads / Scan Site tab.
 - Verification depends on availability of WordPress.org services and supported exact plugin checksum releases. Do not rely on this plugin as proof that all code is clean.
+- **Download finding:** administrator-only downloads are streamed as `.bin` attachments after SHA-256 verification, with an 8 MiB per-file limit. Works with active and quarantined findings; downloaded contents remain potentially malicious.
+- **Evidence ZIP names and manifest:** include site, scan scope and export time in the archive filename; manifest records site URL/domain, installed WordPress version, active theme/version, YOOtheme component versions, Asenka Guard version and per-file hashes/signals. Handle archives only in a safe analysis environment.
+- **Automatic updates column:** removed the redundant custom link and provided version metadata to WordPress for its native Automatic Updates control, subject to a valid public GitHub release.
