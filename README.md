@@ -1,8 +1,8 @@
 # Asenka Guard
 
-[![Version](https://img.shields.io/badge/version-0.1.4-315664)](https://github.com/Asenka-Dev-Team/Asenka-Guard/releases/latest) [![Latest release](https://img.shields.io/badge/Download-Latest%20Release-1f8c9b?logo=github)](https://github.com/Asenka-Dev-Team/Asenka-Guard/releases/latest) [![License](https://img.shields.io/badge/license-GPL--2.0%2B-60747e)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.1.7-315664)](https://github.com/Asenka-Dev-Team/Asenka-Guard/releases/latest) [![Latest release](https://img.shields.io/badge/Download-Latest%20Release-1f8c9b?logo=github)](https://github.com/Asenka-Dev-Team/Asenka-Guard/releases/latest) [![License](https://img.shields.io/badge/license-GPL--2.0%2B-60747e)](LICENSE)
 
-A narrowly scoped, **manual WordPress security review tool** for investigating possible compromise related to YOOtheme Pro's image handler. Built by [Asenka Interactive](https://asenka.com).
+A WordPress security review and monitoring plugin focused on suspicious files, YOOtheme Pro image-handler exposure, and local file integrity changes. Built by [Asenka Interactive](https://asenka.com).
 
 > [!IMPORTANT]
 > **First update affected YOOtheme Pro installations.** The known affected range is **5.0.0–5.0.52**, patched in **5.0.53**. Scanning does not close the vulnerability, and updating does not remove existing malware.
@@ -14,27 +14,29 @@ A narrowly scoped, **manual WordPress security review tool** for investigating p
 1. Open the **Latest Release** link above.
 2. Download the installable plugin ZIP listed in the release assets, **if available**. Otherwise download **Source code (zip)**; the GitHub updater can normalize the GitHub-generated source folder for automatic updates, but manual installation of GitHub source archives may need repackaging so the ZIP contains an `asenka-yootheme-image-guard/` root folder.
 3. In WordPress go to **Plugins → Add New Plugin → Upload Plugin**, select the ZIP and activate it.
-4. Go to **Tools → Asenka Guard** and select **Scan Results → Scan now**.
+4. Open **Asenka Guard → Scan Uploads** to run a manual uploads scan, or use **Scan Site** for broader read-only inspection. Review the Dashboard before enabling monitoring.
 
 > [!NOTE]
-> New versions are discovered from **public GitHub Releases**. Use the **Updates** tab to check the latest published version. Maintainers should publish a GitHub release tagged `v0.1.4` after committing matching versioned files.
+> New versions are discovered from **public GitHub Releases**. Use the **Updates** tab to check the latest published version. Maintainers should publish a GitHub release tagged `v0.1.7` after committing matching versioned files.
 
 ## Features
 
-- **Manual scanning:** uploads and nested YOOtheme cache, with all PHP-family extensions in uploads plus filename and code heuristics.
-- **Last-scan status:** shows the date/time, files examined, active findings, and scan-limit warning; clearly identifies never-scanned sites.
-- **YOOtheme version audit:** warns about known 5.0.0–5.0.52 exposure.
-- **Reviewable findings:** severity colors, last-modified timestamps, flagged-path highlighting, readable snippets, file types, copy-path buttons, signal explanations, and secure read-only text/image previews.
-- **Selection tools:** select individual files, all visible files, or filename/full-path substring matches, then apply bulk actions (up to 200 per request).
-- **Quarantine tab:** view, restore or permanently delete quarantined files, with deletion confirmation.
-- **CSV exports:** save findings for follow-up.
-- **GitHub release updates:** WordPress-native updates, manual refresh, status diagnostics, and Update Now link in the Updates tab.
-- **WP-CLI:** `wp ayig scan`, `wp ayig versions`, `wp ayig findings --format=csv`, `wp ayig quarantine <id>`, `wp ayig restore <id>`, `wp ayig delete <id> --yes`.
+- **Security dashboard:** summarizes active and high-priority findings, quarantined files, YOOtheme components, recent scans, and monitoring status.
+- **Scan Uploads:** investigates unusual PHP files, disguised image payloads, and suspicious content in WordPress uploads and YOOtheme cache paths.
+- **Scan Site:** performs read-only inspection outside uploads for suspicious PHP/backdoor patterns; site/root findings are review-only.
+- **YOOtheme version and integrity checks:** audits potentially vulnerable versions and compares selected YOOtheme PHP, template and JavaScript files against a *locally captured* SHA-256 baseline.
+- **Optional scheduled monitoring:** daily or weekly WP-Cron scans, selected scope (Uploads or Site), email notifications for new/changed findings and incomplete scans, and last/next-run status. **Off by default.**
+- **Reviewable findings:** severity and confidence badges, timestamps, evidence snippets, signals, secure read-only previews, and Copy Path.
+- **Fast selection:** single-row, Select All, filename/full-path matching, and **Shift+click range selection**; bulk actions support up to 200 findings per request.
+- **File management:** private quarantine, verified restore, confirmed permanent deletion, and hash-aware Ignore/Unignore tools.
+- **Exports and tracking:** CSV, bounded evidence ZIPs with SHA-256 manifest, scan-history summaries, and New/Changed file lists.
+- **GitHub updates:** WordPress update integration, an Updates tab, and optional per-plugin automatic updates from the Plugins page.
+- **WP-CLI:** `wp ayig scan --scope=uploads`, `wp ayig scan --scope=site`, `wp ayig monitor`, `wp ayig integrity`, `wp ayig versions`, and findings/quarantine/restore/ignore commands.
 
 ## Critical operational limitations
 
 > [!CAUTION]
-> **Not a full malware scanner.** Only the uploads directory is scanned. Theme modifications, injected header templates, database entries, cron tasks, rogue users, persistence mechanisms and files outside uploads are not comprehensively analyzed.
+> **Not a complete malware scanner.** Uploads and Site scans use heuristics, not comprehensive or vendor-authenticated integrity verification. Database payloads, persistence mechanisms, rogue users and all possible infection paths are not exhaustively checked.
 >
 > **Heuristics are not proof.** PHP inside uploads and `tmp_123.php` patterns can be highly concerning, but *do not automatically delete findings*. Snippets and previews expose untrusted code as inert, escaped text only.
 >
@@ -48,7 +50,7 @@ A narrowly scoped, **manual WordPress security review tool** for investigating p
 >
 > **Back up production first.** Quarantine uses filesystem renames, which may fail across mounts. A deleted quarantined file cannot be restored by this plugin. A rescan after restoring a file will identify it again.
 
-The scanning overlay is an activity indicator **not** a percentage progress bar. Scans currently run as a regular server request and large sites may encounter server/PHP timeouts. Text previews show the first 128 KiB of an unchanged file; image previews are limited to 2 MiB and is unavailable after permanent deletion.
+The scanning overlay is an activity indicator, **not** a percentage progress bar. Manual and scheduled scans are synchronous and large sites may encounter PHP timeouts. WP-Cron only runs when triggered by visits or an external cron mechanism; it does not guarantee exact scan times. The monitoring interface should not be relied upon as a substitute for server-level security monitoring. Text previews show the first 128 KiB of an unchanged file; image previews are limited to 2 MiB and is unavailable after permanent deletion.
 
 ## Security reference
 
@@ -68,6 +70,17 @@ GPL-2.0-or-later.
 ### Severity classification (v0.1.4)
 Severity is heuristic and is **not proof of compromise**. PHP files in uploads and PHP tags inside images trigger review; stronger combinations (request-driven execution, obfuscation, and known suspicious `tmp_*.php` patterns) raise priority. Common harmless `index.php` directory placeholders remain low priority. Review evidence before quarantining.
 
+
+## v0.1.7 — YOOtheme integrity and monitoring
+
+- **Dashboard:** overview of active findings, high/critical findings, quarantined files, detected YOOtheme components, last Uploads/Site scans, and scheduled monitoring status.
+- **Integrity:** capture a SHA-256 baseline for selected YOOtheme source files and compare subsequent scans for **added, modified, or removed** files. Capture only after verifying that the installation is clean. Normal YOOtheme updates also change hashes; this is **not** comparison against official vendor checksums.
+- **Scheduled monitoring:** optionally enable daily or weekly scans via WP-Cron. Choose Uploads or Site, set the recipient email, and enable notifications for new/changed findings or incomplete scans. The dashboard reports the next scheduled run and latest outcome.
+- **Result selection:** Shift+click across visible findings to select or deselect a contiguous range for bulk actions.
+- **Plugins page:** native enable/disable auto-updates control; author name links to [Asenka Interactive](https://asenka.com) and the redundant Asenka row-action link is removed.
+
+> [!CAUTION]
+> Scheduled scans remain synchronous and can time out on large sites. WP-Cron is traffic-dependent. **Monitoring and automatic updates are opt-in.** Inspect and approve any YOOtheme baseline before trusting change reports.
 
 ## v0.1.5: Security hardening and diagnostics
 
@@ -114,12 +127,3 @@ The public name is **Asenka Guard**. Its focus is still the YOOtheme Pro 5 image
 - Image header mismatch is evidence for investigation, not proof of maliciousness. AVIF, ICO and BMP support is limited.
 - Site-scan findings are **review-only**, including theme/plugin files. Quarantine should be limited to thoroughly reviewed uploads findings.
 - New/changed labels compare against the preceding saved scan, not an immutable trusted baseline.
-
-
-## v0.1.7: integrity and monitoring
-
-- Dashboard summarizes active findings, urgent findings, quarantined files, and last scans.
-- Integrity tab captures a **local YOOtheme file hash baseline** (PHP, JS, and templates). This baseline is **not vendor-authenticated** and does not establish that the site is clean. Capture only after manual verification; compare after upgrades and investigate unexpected modifications.
-- Opt-in WP-Cron scans: daily or weekly, one scan scope (uploads or site), optional email alerts for new/changed findings and truncated scans. WordPress cron depends on requests or system cron; server-level scheduling is recommended for reliability. Scans are synchronous and can time out.
-- Scan results support Shift+click range selection for visible rows.
-- WordPress native auto-updates are not forced; availability depends on the GitHub updater correctly reporting releases to WordPress.
