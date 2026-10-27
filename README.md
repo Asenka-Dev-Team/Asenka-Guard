@@ -1,6 +1,6 @@
 # Asenka Guard
 
-[![Version](https://img.shields.io/badge/version-0.1.8-315664)](https://github.com/Asenka-Dev-Team/Asenka-Guard/releases/latest) [![Latest release](https://img.shields.io/badge/Download-Latest%20Release-1f8c9b?logo=github)](https://github.com/Asenka-Dev-Team/Asenka-Guard/releases/latest) [![License](https://img.shields.io/badge/license-GPL--2.0%2B-60747e)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.1.9-315664)](https://github.com/Asenka-Dev-Team/Asenka-Guard/releases/latest) [![Latest release](https://img.shields.io/badge/Download-Latest%20Release-1f8c9b?logo=github)](https://github.com/Asenka-Dev-Team/Asenka-Guard/releases/latest) [![License](https://img.shields.io/badge/license-GPL--2.0%2B-60747e)](LICENSE)
 
 A WordPress security review and monitoring plugin focused on suspicious files, YOOtheme Pro image-handler exposure, and local file integrity changes. Built by [Asenka Interactive](https://asenka.com).
 
@@ -17,7 +17,17 @@ A WordPress security review and monitoring plugin focused on suspicious files, Y
 4. Open **Asenka Guard → Scan Uploads** to run a manual uploads scan, or use **Scan Site** for broader read-only inspection. Review the Dashboard before enabling monitoring.
 
 > [!NOTE]
-> New versions are discovered from **public GitHub Releases**. Use the **Updates** tab to check the latest published version. Maintainers should publish a GitHub release tagged `v0.1.8` after committing matching versioned files.
+> New versions are discovered from **public GitHub Releases**. Use the **Updates** tab to check the latest published version. Maintainers should publish a GitHub release tagged `v0.1.9` after committing matching versioned files.
+
+## New in v0.1.9 — Detection quality and reliability
+
+- **JPEG-aware inspection:** Separate APP/COM metadata, compressed pixel data and bytes appended after the JPEG end marker. Ignore incidental `<?` and `<?=` byte sequences in ordinary image entropy, but flag recognizable PHP in metadata or appended content. An appended PHP payload is a high-priority review item.
+- **Safer incomplete scans:** When a scan hits its file cap, encounters unreadable files or cannot access the scan root, the scan is marked **INCOMPLETE** and previously saved findings are preserved instead of being replaced by partial results. WP-CLI exits with an error for incomplete scans.
+- **Scheduled-scan status:** Incomplete scans show as partial and can trigger an alert. Incomplete passes do not report partial findings as new results.
+- **Native automatic-update support:** Retains the WordPress Automatic Updates column compatibility fix from the 0.1.8 hotfix, even if GitHub metadata is temporarily unavailable.
+
+> [!CAUTION]
+> An incomplete scan is **not** a clean bill of health. The scanner is still synchronous and may time out or terminate before it can record a status. Run large site scans via WP-CLI and inspect logs; resumable, chunked scanning remains future work. The first GitHub auto-update installation must still be verified on a staging site using a genuinely newer published release.
 
 ## Features
 

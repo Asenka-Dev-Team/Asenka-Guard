@@ -16,27 +16,33 @@ final class Asenka_Guard_Detector {
   if(strlen($bytes)>=2 && ord($bytes[0])===0x78 && in_array(ord($bytes[1]),[0x01,0x9c,0xda],true))return 'zlib';
   return 'unknown';
  }
- /** Locate the JPEG EOI outside length-delimited metadata and entropy-escaped bytes. */
- static function jpeg_end($bytes){
-  $length=strlen($bytes); if($length<4 || substr($bytes,0,3)!=="\xff\xd8\xff")return false;
-  $i=2;$entropy=false;
-  while($i<$length-1){
-   if(ord($bytes[$i])!==255){if($entropy){$i++;continue;}return false;}
-   $markerAt=$i;
+ /** Parse JPEG segments without interpreting compressed pixel data as PHP code. */
+ static function jpeg_parts($bytes){
+  $length=strlen($bytes);$bad=['valid'=>false,'end'=>false,'metadata'=>'','tail'=>''];
+  if($length<4||substr($bytes,0,2)!=="\xff\xd8")return $bad;
+  $i=2;$entropy=false;$meta='';$segments=0;
+  while($i<$length-1 && ++$segments<200000){
+   if(ord($bytes[$i])!==255){if($entropy){$i++;continue;}return $bad;}
    while($i<$length && ord($bytes[$i])===255)$i++;
-   if($i >= $length)return false;
+   if($i >= $length)return $bad;
    $marker=ord($bytes[$i++]);
-   if($marker===0){if(!$entropy)return false;continue;}
-   if($marker===0xd9)return $i;
+   if($marker===0){if(!$entropy)return $bad;continue;}
+   if($marker===0xd9)return ['valid'=>true,'end'=>$i,'metadata'=>$meta,'tail'=>substr($bytes,$i)];
    if($marker===0xd8 || $marker===0x01 || ($marker>=0xd0 && $marker<=0xd7))continue;
-   if($i+2>$length)return false;
+   if($i+2>$length)return $bad;
    $size=(ord($bytes[$i])<<8)|ord($bytes[$i+1]);
-   if($size<2 || $i+$size>$length)return false;
+   if($size<2 || $i+$size>$length)return $bad;
+   // APP0–APP15 and COM data are non-image entropy: investigate credible code there.
+   if(($marker>=0xe0&&$marker<=0xef)||$marker===0xfe){
+    $piece=substr($bytes,$i+2,$size-2);
+    if(strlen($meta)+strlen($piece)<=self::LIMIT)$meta.=$piece;
+   }
    $i+=$size;
    if($marker===0xda)$entropy=true;
   }
-  return false;
+  return $bad;
  }
+ static function jpeg_end($bytes){$part=self::jpeg_parts($bytes);return $part['end'];}
  static function png_end($bytes){
   $length=strlen($bytes);if(substr($bytes,0,8)!=="\x89PNG\r\n\x1a\n")return false;
   $i=8;
@@ -56,9 +62,10 @@ final class Asenka_Guard_Detector {
   $hasExec=preg_match('/\b(?:eval|assert|shell_exec|system|passthru|proc_open|popen|base64_decode|gzinflate|bzdecompress)\s*\(/i',$data);
   $hasStatement=preg_match('/<\?php\s+(?:[$a-z_]|\/\*|\/\/)/i',$data);
   $hasRequest=preg_match('/\$_(?:POST|GET|REQUEST|COOKIE)\s*\[/i',$data);
-  return (bool)(($hasExec && ($hasRequest || $hasStatement)) || ($hasRequest && $hasStatement));
+  $hasSource=preg_match('/<\?php\s+(?:echo|print|include|require|function|class|if|\$[a-z_][a-z_0-9]*\s*=)/i',$data) || preg_match('/<\?=\s*\$[a-z_][a-z_0-9]*/i',$data);
+  return (bool)(($hasExec && ($hasRequest || $hasStatement)) || ($hasRequest && $hasStatement) || $hasSource);
  }
- static function inspect($bytes,$ext){
+ static function inspect($bytes,$ext,$completeFile=true){
   $hits=[];$type=self::type($bytes);$expected=['jpg'=>'jpeg','jpeg'=>'jpeg','png'=>'png','gif'=>'gif','webp'=>'webp'];
   if(self::media($ext) && isset($expected[$ext]) && $type!==$expected[$ext])$hits[]='image_type_mismatch';
   $data=$bytes;$decoded=null;$inspection='not-needed';$codeData='';
@@ -73,19 +80,15 @@ final class Asenka_Guard_Detector {
    if($inspection==='unavailable')$hits[]='compressed_uninspected';
   }
   if(self::media($ext) && $type==='jpeg'){
-   $end=self::jpeg_end($bytes);
-   if($end!==false){
-    // JPEG compressed entropy can contain arbitrary byte patterns. Only evaluate
-    // trailing bytes as source; detect suspicious meaningful code in metadata
-    // separately, never flag a lone <?= inside legitimate pixel data.
-    $tail=substr($bytes,$end);
-    if(self::php_payload($tail)){$hits[]='embedded_php';$codeData=$tail;}
-    elseif(self::php_payload($bytes)){
-     // A credible full PHP payload may occur inside metadata/APP segments.
-     // This is not triggered by opening markers alone.
-     $hits[]='embedded_php';$codeData=$bytes;
-    }
-   }elseif(self::php_payload($bytes)){$hits[]='embedded_php';$codeData=$bytes;}
+   $parts=self::jpeg_parts($bytes);
+   if($parts['valid']){
+    // Compressed scan data is opaque. Accidental <? and <?= tokens there are ignored.
+    if(self::php_payload($parts['tail'])){$hits[]='jpeg_appended_php';$hits[]='embedded_php';$codeData=$parts['tail'];}
+    if(self::php_payload($parts['metadata'])){$hits[]='jpeg_metadata_php';$hits[]='embedded_php';$codeData.="\n".$parts['metadata'];}
+   }elseif($completeFile){
+    // A complete JPEG without an EOI is structurally invalid; truncated read is not.
+    $hits[]='image_structure_invalid';
+   }
   }elseif(self::media($ext) && $type==='png'){
    $end=self::png_end($bytes);
    $tail=$end===false?'':substr($bytes,$end);

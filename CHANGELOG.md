@@ -1,3 +1,13 @@
+## 0.1.9 — 2026-10-27 — JPEG-aware analysis and reliability
+
+- Ignore coincidental `<?` and `<?=` sequences in JPEG compressed pixel data without assuming valid JPEG files are automatically safe.
+- Scan JPEG APP/COM metadata separately for recognizable PHP; flag PHP appended after the JPEG end-of-image marker for high-priority review.
+- Keep detecting image-type mismatches and disguised compressed payloads; do not scan a partial read as a malformed complete JPEG.
+- Preserve previous saved findings and ignore rules if scans are incomplete because of file limits, inaccessible roots or unreadable files; report incomplete state in the dashboard, scan summary and WP-CLI.
+- Keep scheduled monitoring from treating partial discoveries as new findings; report partial status and alert when configured.
+- Retain the verified native WordPress Automatic Updates column fallback from the unreleased v0.1.8 hotfix. Full GitHub installation still requires a live, newer-release integration test.
+- No automatic deletion or quarantine of suspicious JPEGs.
+
 ## 0.1.8 — 2026-10-27 — Verification, exports and downloads
 
 - Fix WordPress native Automatic Updates column integration by supplying GitHub release metadata even when already up to date; remove redundant custom auto-update row action.
@@ -46,6 +56,10 @@
 - Preserve stored quarantine history and existing administrator workflows.
 
 # Changelog
+
+## Unreleased patch (0.1.8)
+- Preserve WordPress native Automatic Updates column support even when GitHub metadata is unavailable; add site-wide auto-update diagnostics.
+
 
 ## 0.1.4 — Scan triage and native updates
 - Fixed GitHub updater hook to use WordPress `update_plugins_github.com` dynamic filter; adds native forced checks, diagnostics, and Update Now navigation.

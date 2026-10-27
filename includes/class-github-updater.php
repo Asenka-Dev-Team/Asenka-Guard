@@ -4,6 +4,7 @@ final class Asenka_YOOtheme_Image_Guard_Updater {
  const OWNER='Asenka-Dev-Team'; const REPO='Asenka-Guard'; const CACHE='ayig_latest_release';
  static function init(){
   add_filter('update_plugins_github.com',[__CLASS__,'check'],10,4);
+  add_filter('site_transient_update_plugins',[__CLASS__,'ensure_support'],20,1);
   add_filter('plugins_api',[__CLASS__,'info'],20,3);
   add_filter('upgrader_source_selection',[__CLASS__,'normalize'],10,4);
   add_action('admin_menu',[__CLASS__,'menu']);
@@ -33,6 +34,27 @@ final class Asenka_YOOtheme_Image_Guard_Updater {
   $r=self::api();if(is_wp_error($r))return $update;
   return ['id'=>'https://github.com/'.self::OWNER.'/'.self::REPO,'slug'=>'asenka-yootheme-image-guard','plugin'=>AYIG_BASENAME,'version'=>$r['version'],'new_version'=>$r['version'],'url'=>$r['url'],'package'=>$r['zip'],'requires_php'=>'7.4'];
  }
+ /**
+  * Preserve native WordPress automatic-update controls even when GitHub is
+  * unreachable or WordPress has not run its third-party update check yet.
+  * Never fabricate a newer release, package URL, or update availability.
+  */
+ static function ensure_support($transient){
+  if (!is_object($transient)) return $transient;
+  if (!isset($transient->response) || !is_array($transient->response)) $transient->response=[];
+  if (isset($transient->response[AYIG_BASENAME])) return $transient;
+  if (!isset($transient->no_update) || !is_array($transient->no_update)) $transient->no_update=[];
+  if (!isset($transient->no_update[AYIG_BASENAME])) {
+   $transient->no_update[AYIG_BASENAME]=(object)[
+    'id'=>'https://github.com/'.self::OWNER.'/'.self::REPO,
+    'slug'=>'asenka-yootheme-image-guard',
+    'plugin'=>AYIG_BASENAME,
+    'new_version'=>AYIG_VERSION,
+    'url'=>'https://github.com/'.self::OWNER.'/'.self::REPO,
+   ];
+  }
+  return $transient;
+ }
  static function info($result,$action,$args){
   if($action!=='plugin_information'||empty($args->slug)||$args->slug!=='asenka-yootheme-image-guard')return $result;
   $r=self::api();if(is_wp_error($r))return $result;
@@ -61,6 +83,13 @@ final class Asenka_YOOtheme_Image_Guard_Updater {
   $record=is_object($transient)&&isset($transient->response[AYIG_BASENAME])?$transient->response[AYIG_BASENAME]:null;
   $native=is_object($record)?($record->new_version??$record->version??''):(is_array($record)?($record['new_version']??$record['version']??''):'');
   echo '<p>WordPress update registration: <strong>'.($native?esc_html('Available: '.$native):'No native update currently registered').'</strong></p>';
+  if (function_exists('wp_is_auto_update_enabled_for_type') && !wp_is_auto_update_enabled_for_type('plugin')) {
+   echo '<p><strong>Automatic updates:</strong> Disabled site-wide by WordPress configuration, hosting, or another plugin. The Plugins-page toggle cannot appear until enabled globally.</p>';
+  } else {
+   $enabled=(array)get_site_option('auto_update_plugins',[]);
+   echo '<p><strong>Asenka Guard auto-updates:</strong> '.(in_array(AYIG_BASENAME,$enabled,true)?'Enabled':'Disabled').'. Change this in Plugins &rarr; Automatic Updates.</p>';
+  }
+
   if($native && version_compare($native,AYIG_VERSION,'>')){
    $link=wp_nonce_url(admin_url('update.php?action=upgrade-plugin&plugin='.rawurlencode(AYIG_BASENAME)),'upgrade-plugin_'.AYIG_BASENAME);
    echo '<p><a class="button button-primary" href="'.esc_url($link).'">Update now through WordPress</a> <a href="'.esc_url(admin_url('plugins.php')).'">View Plugins page</a></p>';
