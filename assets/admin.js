@@ -41,7 +41,7 @@
     form.addEventListener('submit', () => {
       const overlay = document.createElement('div'); overlay.className = 'ayig-scanning';
       overlay.setAttribute('role', 'status'); overlay.innerHTML = `<span class="ayig-spinner" aria-hidden="true"></span><strong>Scanning ${form.querySelector('input[name=tab]')?.value === 'site' ? 'site' : 'uploads'}…</strong><span>Please keep this tab open. Results will appear when the scan finishes.</span>`;
-      document.body.appendChild(overlay); const btn = form.querySelector('button'); if (btn) {btn.disabled=true;btn.textContent='Scanning…';}
+      document.body.appendChild(overlay); document.documentElement.classList.add('ayig-scan-locked'); document.body.classList.add('ayig-scan-locked'); const btn = form.querySelector('button'); if (btn) {btn.disabled=true;btn.textContent='Scanning…';}
     });
   });
   const needleInput=root.querySelector('#ayig-name-filter');
@@ -76,5 +76,43 @@
     });sync();
   }
   typeFilter?.addEventListener('change',applyFilters);changeFilter?.addEventListener('change',applyFilters);
+
+  // Latest scan change lists are derived from the saved findings; no filesystem reads here.
+  const changeModal = root.querySelector('#ayig-change-modal');
+  if (changeModal) {
+    let lastFocus = null;
+    const heading = changeModal.querySelector('#ayig-change-modal-title');
+    const list = changeModal.querySelector('.ayig-change-list');
+    const closeButton = changeModal.querySelector('.ayig-change-close');
+    function closeChangeModal() {
+      changeModal.hidden = true;
+      document.removeEventListener('keydown', modalKeys);
+      lastFocus?.focus();
+    }
+    function modalKeys(event) {
+      if (event.key === 'Escape') {event.preventDefault(); closeChangeModal();}
+      if (event.key === 'Tab') {
+        const focusable = [...changeModal.querySelectorAll('button, a[href]')].filter(el => !el.disabled);
+        if (!focusable.length) return;
+        const first = focusable[0], last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {event.preventDefault(); last.focus();}
+        else if (!event.shiftKey && document.activeElement === last) {event.preventDefault(); first.focus();}
+      }
+    }
+    root.querySelectorAll('.ayig-change-open').forEach(button => button.addEventListener('click', () => {
+      const type = button.dataset.changeModal === 'changed' ? 'changed' : 'new';
+      const source = root.querySelector(`.ayig-change-data[data-change="${type}"] ul`);
+      heading.textContent = type === 'new' ? 'New files — latest scan' : 'Changed files — latest scan';
+      list.replaceChildren();
+      if (source?.children.length) list.appendChild(source.cloneNode(true));
+      else {const p = document.createElement('p'); p.textContent = `No ${type} active files to display. They may have been ignored or quarantined since the scan.`; list.appendChild(p);}
+      lastFocus = button;
+      changeModal.hidden = false;
+      closeButton.focus();
+      document.addEventListener('keydown', modalKeys);
+    }));
+    changeModal.querySelectorAll('.ayig-change-close').forEach(button => button.addEventListener('click', closeChangeModal));
+    changeModal.addEventListener('click', event => {if (event.target === changeModal) closeChangeModal();});
+  }
   sync();
 })();

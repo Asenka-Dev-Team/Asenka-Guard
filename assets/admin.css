@@ -118,3 +118,41 @@
 .ayig-change-new{color:#a34716;font-weight:700}.ayig-change-changed{color:#a42432;font-weight:700}
 .ayig-history{padding:8px 12px;background:#edf2f4;border-left:3px solid #3f859e}
 @media(max-width:1080px){.ayig-table tbody tr.ayig-selected{border-left-color:#267ea5}.ayig-table .ayig-actions{white-space:normal}}
+
+/* v0.1.6.1: Fit more scan controls on desktop and lock scrolling while scanning. */
+html.ayig-scan-locked,body.ayig-scan-locked{overflow:hidden!important;overscroll-behavior:none!important}
+.ayig-wrap .ayig-table{table-layout:fixed;min-width:1040px;width:100%}
+.ayig-wrap .ayig-table th:nth-child(1){width:28px}
+.ayig-wrap .ayig-table th:nth-child(2){width:34px}
+.ayig-wrap .ayig-table th:nth-child(3){width:auto}
+.ayig-wrap .ayig-table th:nth-child(4){width:52px}
+.ayig-wrap .ayig-table th:nth-child(5){width:76px}
+.ayig-wrap .ayig-table th:nth-child(6){width:106px}
+.ayig-wrap .ayig-table th:nth-child(7){width:112px}
+.ayig-wrap .ayig-table th:nth-child(8){width:137px}
+.ayig-wrap .ayig-table th:nth-child(9){width:66px}
+.ayig-wrap .ayig-table th:nth-child(10){width:204px}
+.ayig-wrap .ayig-table th,.ayig-wrap .ayig-table td{padding:9px 5px}
+.ayig-wrap .ayig-table .ayig-actions{width:204px;min-width:0;white-space:normal;overflow:visible}
+.ayig-wrap .ayig-actions .button,.ayig-wrap .ayig-actions .ayig-action{padding:5px 5px!important;font-size:10px!important;margin-right:1px!important}
+.ayig-wrap .ayig-table .ayig-signal summary{white-space:normal!important;overflow-wrap:normal;line-height:1.2!important}
+@media(max-width:1080px){.ayig-wrap .ayig-table{min-width:0}.ayig-wrap .ayig-table .ayig-actions{width:auto}.ayig-wrap .ayig-table tbody td{padding:7px 4px}}
+
+/* v0.1.6.1 pre-release: latest scan change summary dialogs */
+.ayig-history .ayig-change-open{border:0;background:none;padding:0 2px;color:#12678c;text-decoration:underline;text-underline-offset:2px;font:inherit;font-weight:700;cursor:pointer}
+.ayig-history .ayig-change-open:focus-visible{outline:2px solid #246d91;outline-offset:3px}
+.ayig-change-modal[hidden],.ayig-change-data[hidden]{display:none!important}
+.ayig-change-modal{position:fixed;inset:0;z-index:100100;background:rgba(12,24,34,.72);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box}
+.ayig-change-dialog{background:#fff;color:#223540;border-radius:8px;border:1px solid #7b9aab;box-shadow:0 18px 56px #09192377;width:min(760px,100%);max-height:min(80vh,760px);display:flex;flex-direction:column}
+.ayig-change-dialog-top{background:#20323e;color:white;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-radius:7px 7px 0 0;gap:16px}
+.ayig-change-dialog-top h2{margin:0!important;color:#fff;font-size:19px}
+.ayig-change-dialog-top button{background:transparent;border:0;color:#fff;font-size:28px;cursor:pointer;line-height:1}
+.ayig-change-help{padding:12px 18px 0;margin:0}
+.ayig-change-list{padding:8px 18px 16px;overflow:auto;min-height:70px}
+.ayig-change-list ul{padding:0;margin:0;list-style:none;counter-reset:files}
+.ayig-change-list li{display:flex;gap:7px 14px;flex-wrap:wrap;align-items:center;padding:10px 2px;border-bottom:1px solid #e0e7eb;counter-increment:files}
+.ayig-change-list li:before{content:counter(files) '.';color:#547180;font-weight:700}
+.ayig-change-list li code{overflow-wrap:anywhere;word-break:break-word;flex:1 1 275px}
+.ayig-change-meta{font-size:11px;color:#536873}
+.ayig-change-list li a{white-space:nowrap}
+.ayig-change-footer{border-top:1px solid #d6e0e6;padding:12px 18px;text-align:right}

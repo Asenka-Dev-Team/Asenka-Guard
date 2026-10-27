@@ -1,3 +1,8 @@
+## v0.1.6.1 — Pre-release fixes
+- Tightened scan table column widths and improved action visibility.
+- Lock document scrolling during the scanning overlay.
+- Prevent false positives from isolated PHP-like bytes in JPEG image entropy; maintain review for meaningful PHP payloads and mismatched/compressed image files.
+
 ## 0.1.6 — Scan intelligence and workflow
 - Magic-byte media checks and bounded compressed-content inspection.
 - Targeted detection of unexpected `wp-blog.php` and request-driven command execution.
@@ -72,3 +77,5 @@
 - Hash-aware Ignore File action with an Ignored Files management tab.
 - Separate Scan Uploads and Scan Site views and action labels; shared quarantine.
 - WP-CLI scan scope and ignore/unignore commands.
+
+- Pre-release v0.1.6.1: Clickable New/Changed scan summary counts open a read-only file list dialog.
