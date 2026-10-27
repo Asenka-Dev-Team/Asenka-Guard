@@ -7,10 +7,10 @@
   const counters = [...root.querySelectorAll('.ayig-count')];
   function sync() {
     const selected = boxes.filter(x => x.checked).length;
-    counters.forEach(c => {c.textContent = `${selected} selected`;});
+    counters.forEach(c => {c.textContent = `${selected} selected`;}); boxes.forEach(b=>b.closest('tr')?.classList.toggle('ayig-selected',b.checked));
     masters.forEach(m => { m.checked = boxes.length > 0 && selected === boxes.length; m.indeterminate = selected > 0 && selected < boxes.length; });
   }
-  masters.forEach(m => m.addEventListener('change', () => { boxes.forEach(b => b.checked = m.checked); sync(); }));
+  masters.forEach(m => m.addEventListener('change', () => { boxes.forEach(b => {if(!b.closest('tr')?.hidden)b.checked = m.checked;}); sync(); }));
   boxes.forEach(b => b.addEventListener('change', sync));
   const topOperation = root.querySelector('#ayig-bulk-form select[name=operation]');
   const bottomOperation = root.querySelector('.ayig-bottom-operation');
@@ -65,5 +65,16 @@
     try{await navigator.clipboard.writeText(path);b.textContent='Copied!';setTimeout(()=>b.textContent='Copy path',1300);}
     catch(e){window.prompt('Copy file path:',path);}
   }));
+  const typeFilter=root.querySelector('#ayig-filter-type'), changeFilter=root.querySelector('#ayig-filter-change');
+  const imageTypes=['JPG','JPEG','PNG','GIF','WEBP','AVIF','BMP','ICO'];
+  function applyFilters(){
+    root.querySelectorAll('.ayig-table tbody tr:not(.ayig-empty-row)').forEach(tr=>{
+      const type=tr.querySelector('td[data-label="Type"]')?.textContent.trim().toUpperCase()||'';
+      const typeMatch=!typeFilter||typeFilter.value==='all'||(typeFilter.value==='php'&&/^(PHP[0-9]?|PHTML|PHT|PHAR)$/.test(type))||(typeFilter.value==='image'&&imageTypes.includes(type));
+      const changeMatch=!changeFilter||changeFilter.value==='all'||tr.dataset.change===changeFilter.value;
+      tr.hidden=!(typeMatch&&changeMatch);if(tr.hidden){const b=tr.querySelector('.ayig-select');if(b)b.checked=false;}
+    });sync();
+  }
+  typeFilter?.addEventListener('change',applyFilters);changeFilter?.addEventListener('change',applyFilters);
   sync();
 })();

@@ -97,3 +97,20 @@ The public name is **Asenka Guard**. Its focus is still the YOOtheme Pro 5 image
 
 > [!CAUTION]
 > Scan Site is an additional heuristic scan, not a WordPress core integrity check or guarantee of compromise detection. Verify findings against trusted originals. Perform server-level backups before quarantine or deletion.
+
+
+## v0.1.6 scanning improvements
+
+- Image magic-byte checks distinguish file extensions from actual signatures. A `.jpg` containing `BZh` bytes is flagged for review.
+- Bounded, in-process bzip2/gzip/zlib inspection (when PHP extensions are available) and heuristic inspection of decompressed PHP. Content is **never executed**.
+- `wp-blog.php` and request-driven command execution are specifically considered during site scans. The Sucuri name `php.backdoor.fakeJPG.001` is **not** claimed as an exact proprietary signature match.
+- UI: row selection highlighting, more compact actions and signal labels, color-coded confidence, filters and new/changed tracking.
+- Evidence ZIP: 50 unchanged findings maximum, 2 MiB per file, 12 MiB total, with JSON manifest and SHA-256 hashes. It contains potentially malicious content; store offline and never execute. Requires PHP ZipArchive.
+
+### Operational limits
+
+- Scans are still synchronous, bounded by the current PHP execution environment and a 150,000-entry cap. **Chunked AJAX scanning and a trustworthy progress percentage are not yet implemented.**
+- Compressed samples over 256 KiB and expanded payloads over 4 MiB are not fully decoded; `compressed_uninspected` marks this limitation. `bzdecompress` requires PHP bzip2.
+- Image header mismatch is evidence for investigation, not proof of maliciousness. AVIF, ICO and BMP support is limited.
+- Site-scan findings are **review-only**, including theme/plugin files. Quarantine should be limited to thoroughly reviewed uploads findings.
+- New/changed labels compare against the preceding saved scan, not an immutable trusted baseline.

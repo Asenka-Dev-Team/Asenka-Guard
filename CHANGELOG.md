@@ -1,3 +1,13 @@
+## 0.1.6 — Scan intelligence and workflow
+- Magic-byte media checks and bounded compressed-content inspection.
+- Targeted detection of unexpected `wp-blog.php` and request-driven command execution.
+- Reduced noisy media alerts; stronger confidence and severity signals.
+- Selected-row highlighting, compact one-line action controls, filter dropdowns, new/changed labels.
+- Selected finding evidence ZIP with SHA-256 manifest and hard size/count limits.
+- Expanded hash-aware bulk Ignore and per-scope scan history.
+- Site findings are review-only; no site-scope quarantine.
+- Known limitation: chunked AJAX scans are not yet provided.
+
 ## 0.1.5 — Pre-release branding and responsive results
 - Renamed the displayed plugin to **Asenka Guard**; focus remains YOOtheme Pro image-handler exposure and suspicious uploads.
 - Updated the GitHub Releases updater to `Asenka-Dev-Team/Asenka-Guard`.
