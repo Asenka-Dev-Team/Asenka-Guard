@@ -60,13 +60,28 @@ final class Asenka_YOOtheme_Image_Guard_Updater {
   $r=self::api();if(is_wp_error($r))return $result;
   return (object)['name'=>'Asenka Guard','slug'=>'asenka-yootheme-image-guard','version'=>$r['version'],'author'=>'Asenka Interactive','homepage'=>'https://github.com/'.self::OWNER.'/'.self::REPO,'download_link'=>$r['zip'],'sections'=>['description'=>'YOOtheme Pro image handler exposure and suspicious upload review.','changelog'=>esc_html($r['notes'])]];
  }
+ /** Normalize only archives containing our exact plugin entry point, including bulk upgrades. */
  static function normalize($source,$remote_source,$upgrader,$hook_extra){
-  if(empty($hook_extra['plugin'])||$hook_extra['plugin']!==AYIG_BASENAME)return $source;
+  if(!is_string($source)||!is_dir($source))return $source;
+  $entry='asenka-yootheme-image-guard.php';
+  // A direct update identifies the target plugin. Bulk upgrades supply a plugins array.
+  $direct=isset($hook_extra['plugin']) && $hook_extra['plugin']===AYIG_BASENAME;
+  $bulk=!empty($hook_extra['plugins']) && is_array($hook_extra['plugins']) && in_array(AYIG_BASENAME,$hook_extra['plugins'],true);
+  if(!$direct&&!$bulk)return $source;
+  $root=untrailingslashit($source);
+  $candidate=$root;
+  if(!is_file($candidate.'/'.$entry)){
+   $children=glob($root.'/*',GLOB_ONLYDIR);
+   if(count($children)!==1||!is_file($children[0].'/'.$entry))return new WP_Error('ayig_invalid_archive','Asenka Guard archive is missing its expected main plugin file.');
+   $candidate=$children[0];
+  }
+  $header=file_get_contents($candidate.'/'.$entry,false,null,0,8192);
+  if(!is_string($header)||!preg_match('/^\s*\*\s*Plugin Name:\s*Asenka Guard\s*$/mi',$header))return new WP_Error('ayig_invalid_header','Asenka Guard plugin header could not be verified.');
   $target=trailingslashit($remote_source).'asenka-yootheme-image-guard';
-  if(untrailingslashit($source)===untrailingslashit($target))return $source;
-  if(file_exists($target))return new WP_Error('ayig_destination_exists','Source normalization target already exists');
+  if(untrailingslashit($candidate)===untrailingslashit($target))return $candidate;
+  if(file_exists($target))return new WP_Error('ayig_destination_exists','Normalized plugin directory already exists');
   global $wp_filesystem;
-  if(!$wp_filesystem||!$wp_filesystem->move($source,$target))return new WP_Error('ayig_rename_failed','Could not normalize plugin ZIP root directory');
+  if(!$wp_filesystem||!$wp_filesystem->move($candidate,$target))return new WP_Error('ayig_rename_failed','Could not normalize Asenka Guard archive root');
   return $target;
  }
  static function menu(){add_management_page('Asenka Guard Updates','Image Guard Updates','update_plugins','ayig-updates',[__CLASS__,'page']);}

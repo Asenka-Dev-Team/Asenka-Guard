@@ -1,3 +1,10 @@
+## 0.2.0 — 2026-10-29
+- Detect observed `rawheaderdecodes` injected redirect loaders inside PHP theme/plugin files, including multiple blocks per file (read-only detection).
+- Flag the `space_active` cookie when accompanied by browser-redirect or decoding signals; do not flag generic `eval` / `String.fromCharCode` alone as confirmed malware.
+- Ensure these targeted indicators survive the site scanner's legitimate-PHP noise filter.
+- Normalize both single and bulk WordPress GitHub release upgrades, with plugin entry-point validation and support for a single nested plugin folder.
+- Site findings remain review-only outside uploads: no automatic alteration of legitimate theme/plugin files.
+
 ## 0.1.9 — 2026-10-27 — JPEG-aware analysis and reliability
 
 - Ignore coincidental `<?` and `<?=` sequences in JPEG compressed pixel data without assuming valid JPEG files are automatically safe.

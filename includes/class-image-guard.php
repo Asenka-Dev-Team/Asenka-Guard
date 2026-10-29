@@ -160,7 +160,13 @@ final class Asenka_YOOtheme_Image_Guard {
   return (bool)preg_match('~^<\?php\s*(?:(?://|/\*)\s*Silence is golden\.?\s*(?:\*/)?\s*)?(?:\?>)?\s*$~i',$trim);
  }
  static function status($v){if(!preg_match('/^\d+\.\d+\.\d+/',$v))return 'unknown';return version_compare($v,'5.0.0','>=') && version_compare($v,'5.0.53','<')?'VULNERABLE':'not in known affected range';}
- static function signatures($data,$extension){$hits=[]; $rules=['php_tag'=>'/<\?(?:php|=)/i','execution'=>'/\b(?:eval|assert|shell_exec|passthru|system|proc_open|popen)\s*\(/i','obfuscation'=>'/\b(?:base64_decode|gzinflate|gzuncompress|str_rot13)\s*\(/i','request_execution'=>'/(?:\$_(?:POST|GET|REQUEST|COOKIE)\s*\[.{0,100}\]).{0,200}(?:eval|system|shell_exec)|(?:eval|system|shell_exec)\s*\(.{0,150}\$_(?:POST|GET|REQUEST|COOKIE)/is','image_polyglot'=>'/<\?(?:php|=)/i'];foreach($rules as $id=>$re){if($id==='image_polyglot' && !in_array($extension,['png','jpg','jpeg','gif','webp','avif','bmp','ico'],true))continue;if($id==='php_tag' && !in_array($extension,['png','jpg','jpeg','gif','webp','avif','bmp','ico','svg','txt','dat'],true))continue;if(preg_match($re,$data))$hits[]=$id;}return $hits;}
+ static function signatures($data,$extension){$hits=[];
+  // Specific observed server-side injections; generic char-code usage alone is NOT evidence.
+  if(in_array($extension,['php','phtml','pht','inc'],true)){
+   if(stripos($data,'rawheaderdecodes')!==false)$hits[]='confirmed_redirect_loader';
+   if(stripos($data,'space_active')!==false && preg_match('/(?:document\.cookie|setcookie|location\s*(?:\.|\[)|window\.location|String\.fromCharCode)/i',$data))$hits[]='redirect_cookie_chain';
+  }
+   $rules=['php_tag'=>'/<\?(?:php|=)/i','execution'=>'/\b(?:eval|assert|shell_exec|passthru|system|proc_open|popen)\s*\(/i','obfuscation'=>'/\b(?:base64_decode|gzinflate|gzuncompress|str_rot13)\s*\(/i','request_execution'=>'/(?:\$_(?:POST|GET|REQUEST|COOKIE)\s*\[.{0,100}\]).{0,200}(?:eval|system|shell_exec)|(?:eval|system|shell_exec)\s*\(.{0,150}\$_(?:POST|GET|REQUEST|COOKIE)/is','image_polyglot'=>'/<\?(?:php|=)/i'];foreach($rules as $id=>$re){if($id==='image_polyglot' && !in_array($extension,['png','jpg','jpeg','gif','webp','avif','bmp','ico'],true))continue;if($id==='php_tag' && !in_array($extension,['png','jpg','jpeg','gif','webp','avif','bmp','ico','svg','txt','dat'],true))continue;if(preg_match($re,$data))$hits[]=$id;}return $hits;}
  /** Scans uploads or WordPress installation. A site scan does not follow symlinks. */
  static function scan($scope='uploads'){
   if(!in_array($scope,['uploads','site'],true))throw new RuntimeException('Invalid scan scope');
@@ -185,6 +191,7 @@ final class Asenka_YOOtheme_Image_Guard {
     $ext=strtolower(pathinfo($path,PATHINFO_EXTENSION));
     $executable=self::is_executable($path);$inUploads=self::within($real,WP_CONTENT_DIR.'/uploads');
     $size=$file->getSize();
+    // Scan PHP across plugins/themes: observed redirects were embedded in legitimate PHP files.
     // Full site scans focus on executable PHP and suspicious media; ordinary assets are skipped.
     if($scope==='site'&&!$executable&&!in_array($ext,['png','jpg','jpeg','gif','webp','avif','svg','ico','pht','phtml','dat','bin','txt'],true) && strtolower(basename($path))!=='wp-blog.php')continue;
     $data=$size<=2097152?@file_get_contents($path):@file_get_contents($path,false,null,0,131072);
@@ -204,7 +211,7 @@ final class Asenka_YOOtheme_Image_Guard {
     if(!$hits)continue;
     if($executable&&strtolower(basename($path))==='index.php'&&$size<=512&&preg_match('~^\s*<\?php\s*(?:(?://|/\*)\s*Silence is golden\.?\s*(?:\*/)?\s*)?(?:\?>)?\s*$~i',$data))$hits=['standard_index_placeholder'];
     // PHP in core, themes and plugins is ordinary. Only retain stronger code indicators there.
-    if($scope==='site'&&!$inUploads && !array_intersect($hits,['request_execution','request_shell_execution','request_code_execution','goto_exec_obfuscation','image_type_mismatch','embedded_php','unusual_root_php']) && !(in_array('execution',$hits,true)&&in_array('obfuscation',$hits,true)))continue;
+    if($scope==='site'&&!$inUploads && !array_intersect($hits,['confirmed_redirect_loader','redirect_cookie_chain','request_execution','request_shell_execution','request_code_execution','goto_exec_obfuscation','image_type_mismatch','embedded_php','unusual_root_php']) && !(in_array('execution',$hits,true)&&in_array('obfuscation',$hits,true)))continue;
     // Verify only exact vendor-provided file hashes. Unknown/unreachable => retain finding.
     if($scope==='site'){
      $normalized=wp_normalize_path($real);$rootPath=rtrim(wp_normalize_path(ABSPATH),'/').'/';
@@ -262,6 +269,8 @@ final class Asenka_YOOtheme_Image_Guard {
  /** A heuristic triage score, not a malware verdict. Extension alone never means HIGH. */
  static function classify($hits,$executable){
   if(in_array('standard_index_placeholder',$hits,true))return 'low';
+  if(in_array('confirmed_redirect_loader',$hits,true))return 'critical';
+  if(in_array('redirect_cookie_chain',$hits,true))return 'high';
   if(in_array('core_checksum_mismatch',$hits,true)||in_array('jpeg_appended_php',$hits,true))return 'high';
   if(in_array('plugin_checksum_mismatch',$hits,true))return 'review';
   $request=in_array('request_execution',$hits,true);
@@ -314,6 +323,8 @@ final class Asenka_YOOtheme_Image_Guard {
  static function confidence($signals){
   $signals=(array)$signals;
   if(in_array('standard_index_placeholder',$signals,true))return 'informational';
+  if(in_array('confirmed_redirect_loader',$signals,true))return 'strong-indicators';
+  if(in_array('redirect_cookie_chain',$signals,true))return 'suspicious';
   if(in_array('request_execution',$signals,true)&&(in_array('execution',$signals,true)||in_array('obfuscation',$signals,true)))return 'strong-indicators';
   if(in_array('execution',$signals,true)&&in_array('obfuscation',$signals,true))return 'strong-indicators';
   if(array_intersect($signals,['request_shell_execution','request_code_execution','goto_exec_obfuscation']))return 'strong-indicators';
